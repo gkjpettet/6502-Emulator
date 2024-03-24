@@ -75,6 +75,9 @@ Protected Class CPU
 		  Case &h01 // ORA ($nn,X)
 		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.XIndexedZeroPageIndirect)
 		    
+		  Case &h05 // ORA $nn
+		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.ZeroPage)
+		    
 		  Case &h09 // ORA #$nn
 		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.Immediate)
 		    
@@ -121,6 +124,10 @@ Protected Class CPU
 		    
 		  Case AddressModes.XIndexedZeroPageIndirect
 		    Return 6
+		    
+		  Case AddressModes.ZeroPage
+		    Return 3
+		    
 		  Else
 		    Raise New UnsupportedOperationException("Unsupported ORA instruction.")
 		  End Select
@@ -161,6 +168,9 @@ Protected Class CPU
 		    Var highAddressByte As UInt8 = Memory(highAddress)
 		    Var addressByte As UInt16 = ShiftLeft(highAddressByte, 8) Or lowAddressByte
 		    Return Memory(addressByte)
+		    
+		  Case AddressModes.ZeroPage
+		    Return Memory(FetchByte)
 		    
 		  Else
 		    Raise New UnsupportedOperationException("Unsupported address mode.")

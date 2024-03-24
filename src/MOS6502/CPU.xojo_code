@@ -444,7 +444,7 @@ Protected Class CPU
 		A As UInt8
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
+	#tag Property, Flags = &h21, Description = 53657420746F205472756520647572696E672061206D656D6F72792066657463682069662061207061676520626F756E646172792069732063726F737365642E
 		Private CrossedPageBoundary As Boolean = False
 	#tag EndProperty
 

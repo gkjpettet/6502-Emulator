@@ -84,6 +84,18 @@ Protected Class CPU
 		  Case &h0D // ORA $nnnn
 		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.Absolute)
 		    
+		  Case &h11 // ORA ($nn),Y
+		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.ZeroPageIndirectYIndexed)
+		    
+		  Case &h15 // ORA $nn,X
+		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.XIndexedZeroPage)
+		    
+		  Case &h19 // ORA $nnnn,Y
+		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.YIndexedAbsolute)
+		    
+		  Case &h1D // ORA $nnnn,X
+		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.XIndexedAbsolute)
+		    
 		  Else
 		    // Invalid opcode. Halt the CPU.
 		    Halted = True
@@ -122,11 +134,23 @@ Protected Class CPU
 		  Case AddressModes.Immediate
 		    Return 2
 		    
+		  Case AddressModes.XIndexedAbsolute
+		    Return 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    Return 4
+		    
 		  Case AddressModes.XIndexedZeroPageIndirect
 		    Return 6
 		    
+		  Case AddressModes.YIndexedAbsolute
+		    Return 4 + If(CrossedPageBoundary, 1, 0)
+		    
 		  Case AddressModes.ZeroPage
 		    Return 3
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    Return 5 + If(CrossedPageBoundary, 1, 0)
 		    
 		  Else
 		    Raise New UnsupportedOperationException("Unsupported ORA instruction.")
@@ -153,6 +177,8 @@ Protected Class CPU
 		Private Function MemoryFetch(addressMode As MOS6502.AddressModes) As UInt8
 		  /// Fetches a byte from memory.
 		  
+		  CrossedPageBoundary = False
+		  
 		  Select Case addressMode
 		  Case AddressModes.Absolute
 		    Var lsb As UInt16 = FetchByte
@@ -160,6 +186,16 @@ Protected Class CPU
 		    
 		  Case AddressModes.Immediate
 		    Return FetchByte
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    #Pragma Warning "TODO: Figure out page boundary crossing"
+		    Var baseLSB As UInt8 = FetchByte
+		    Var baseAddress As UInt16 = CType(FetchByte, UInt16) * 256 + baseLSB + X
+		    Return Memory(baseAddress)
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    Var zeroPageAddress As UInt8 = FetchByte + X
+		    Return Memory(zeroPageAddress)
 		    
 		  Case AddressModes.XIndexedZeroPageIndirect
 		    Var lowAddress As UInt16 = (X + FetchByte) And &hFF // Constrain to 8-bits.
@@ -169,8 +205,29 @@ Protected Class CPU
 		    Var addressByte As UInt16 = ShiftLeft(highAddressByte, 8) Or lowAddressByte
 		    Return Memory(addressByte)
 		    
+		  Case AddressModes.YIndexedAbsolute
+		    #Pragma Warning "TODO: Figure out page boundary crossing"
+		    Var baseLSB As UInt8 = FetchByte
+		    Var baseAddress As UInt16 = CType(FetchByte, UInt16) * 256 + baseLSB + Y
+		    Return Memory(baseAddress)
+		    
 		  Case AddressModes.ZeroPage
 		    Return Memory(FetchByte)
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    Var zeroPageAddress As UInt8 = FetchByte
+		    Var zeroPageContents As UInt8 = Memory(zeroPageAddress)
+		    Var lsb As UInt16 = zeroPageContents + Y
+		    Var carry As Integer = 0
+		    If lsb < zeroPageContents Then
+		      carry = 1
+		      CrossedPageBoundary = True
+		    End If
+		    
+		    Var msbAddress As UInt8 = zeroPageAddress + 1
+		    Var msb As UInt16 = Memory(msbAddress) + carry
+		    Var actualAddress As UInt16 = (msb * 256) + lsb
+		    Return Memory(actualAddress)
 		    
 		  Else
 		    Raise New UnsupportedOperationException("Unsupported address mode.")
@@ -385,6 +442,10 @@ Protected Class CPU
 
 	#tag Property, Flags = &h0, Description = 382D62697420616363756D756C61746F722E
 		A As UInt8
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private CrossedPageBoundary As Boolean = False
 	#tag EndProperty
 
 	#tag Property, Flags = &h0

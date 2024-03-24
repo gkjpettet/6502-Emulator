@@ -1391,6 +1391,7 @@ End
 		Private Sub UpdateTestSummary()
 		  Var name, result, message, duration As String
 		  Var expected, initial As CPUState
+		  Var cpu As MOS6502.CPU
 		  
 		  Var item As Variant
 		  If TestGroupList.SelectedRowIndex <> -1 Then
@@ -1405,6 +1406,7 @@ End
 		    duration = Format(tr.Duration, "#,0.0000000") + "s"
 		    initial = tr.InitialState
 		    expected = tr.ExpectedState
+		    cpu = tr.CPU
 		  ElseIf item IsA TestGroup Then
 		    Var tg As TestGroup = item
 		    name = tg.Name + " Group"
@@ -1421,8 +1423,10 @@ End
 		  TestMessage.Text = message
 		  
 		  If expected <> Nil And initial <> Nil Then
+		    TestNameLabel.Text = expected.TestName
 		    ExpectedState.Text = expected.ToString
-		    ActualState.Text = initial.ToString
+		    Var actualCPUState As CPUState = CPUState.FromCPUAndExpected(expected, cpu)
+		    ActualState.Text = actualCPUState.ToString
 		  End If
 		  
 		End Sub

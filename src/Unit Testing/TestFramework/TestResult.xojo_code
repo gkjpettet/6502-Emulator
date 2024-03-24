@@ -5,6 +5,10 @@ Protected Class TestResult
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
+		CPU As MOS6502.CPU
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
 		Duration As Double
 	#tag EndProperty
 

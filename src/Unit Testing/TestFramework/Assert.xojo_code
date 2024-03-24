@@ -677,7 +677,7 @@ Protected Class Assert
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, Description = 4661696C73207468652063757272656E7420746573742E
-		Sub FailCustom(initialState As CPUState, expectedState As CPUState, message As String)
+		Sub FailCustom(initialState As CPUState, expectedState As CPUState, cpu As MOS6502.CPU, message As String)
 		  /// Fails the current test.
 		  
 		  Failed = True
@@ -685,6 +685,7 @@ Protected Class Assert
 		  
 		  Group.CurrentTestResult.InitialState = initialState
 		  Group.CurrentTestResult.ExpectedState = expectedState
+		  Group.CurrentTestResult.CPU = cpu.Clone
 		  Group.CurrentTestResult.Message = message
 		  
 		  If Group.StopTestOnFail Then
@@ -809,7 +810,7 @@ Protected Class Assert
 	#tag EndMethod
 
 	#tag Method, Flags = &h0, Description = 4D61726B207468652074657374206173207061737365642E
-		Sub PassCustom(initialState As CPUState, expectedState As CPUState)
+		Sub PassCustom(initialState As CPUState, expectedState As CPUState, cpu As MOS6502.CPU)
 		  /// Mark the test as passed.
 		  
 		  If Group Is Nil Or Group.CurrentTestResult Is Nil Then Return
@@ -819,6 +820,7 @@ Protected Class Assert
 		    Group.CurrentTestResult.Result = TestResult.Passed
 		    Group.CurrentTestResult.InitialState = initialState
 		    Group.CurrentTestResult.ExpectedState = expectedState
+		    Group.CurrentTestResult.CPU = cpu.Clone
 		  End If
 		  
 		  
@@ -830,25 +832,25 @@ Protected Class Assert
 		  /// Passes the test if the CPU's state matches the expected state.
 		  
 		  If cpu.A <> expectedState.A Then
-		    FailCustom(initialState, expectedState, "Incorrect accumulator value.")
+		    FailCustom(initialState, expectedState, cpu, "Incorrect accumulator value.")
 		    
 		  ElseIf cpu.P <> expectedState.P Then
-		    FailCustom(initialState, expectedState, "Incorrect status register.")
+		    FailCustom(initialState, expectedState, cpu, "Incorrect status register.")
 		    
 		  ElseIf cpu.PC <> expectedState.PC Then
-		    FailCustom(initialState, expectedState, "Incorrect PC.")
+		    FailCustom(initialState, expectedState, cpu, "Incorrect PC.")
 		    
 		  ElseIf cpu.SP <> expectedState.SP Then
-		    FailCustom(initialState, expectedState, "Incorrect stack pointer.")
+		    FailCustom(initialState, expectedState, cpu, "Incorrect stack pointer.")
 		    
 		  ElseIf cpu.X <> expectedState.X Then
-		    FailCustom(initialState, expectedState, "Incorrect X register.")
+		    FailCustom(initialState, expectedState, cpu, "Incorrect X register.")
 		    
 		  ElseIf cpu.Y <> expectedState.Y Then
-		    FailCustom(initialState, expectedState, "Incorrect Y register.")
+		    FailCustom(initialState, expectedState, cpu, "Incorrect Y register.")
 		    
 		  Else
-		    PassCustom(initialState, expectedState)
+		    PassCustom(initialState, expectedState, cpu)
 		  End If
 		  
 		End Sub

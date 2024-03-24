@@ -45,6 +45,12 @@ Inherits TestGroup
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub Opcode01Test()
+		  Run("01")
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 52756E732074686520746573747320666F722074686520737065636966696564206F70636F64652028696E20686578292E
 		Sub Run(hexOpcode As String)
 		  /// Runs the tests for the specified opcode (in hex).
@@ -60,9 +66,7 @@ Inherits TestGroup
 		    Var expected As New CPUState(test.Value("final"), test.Lookup("name", ""))
 		    SetCPUState(initial)
 		    CPU.Execute
-		    'CPU.Halted = True
 		    Assert.StatesEqual(CPU, expected, initial)
-		    ' AssertCPUState(final)
 		  Next test
 		  
 		End Sub

@@ -1,6 +1,25 @@
 #tag Class
 Protected Class CPU
 	#tag Method, Flags = &h0
+		Function Clone() As MOS6502.CPU
+		  /// Returns a clone of this CPU. Mostly used for debugging whilst testing.
+		  
+		  Var cpu As New MOS6502.CPU(Memory)
+		  
+		  cpu.A = A
+		  cpu.Halted = Halted
+		  cpu.P = P
+		  cpu.PC = PC
+		  cpu.SP = SP
+		  cpu.TotalCycles = TotalCycles
+		  cpu.X = X
+		  cpu.Y = Y
+		  
+		  Return cpu
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub Constructor(mem As MOS6502.Memory)
 		  Self.Memory = mem
 		  Reset
@@ -53,11 +72,58 @@ Protected Class CPU
 		  Case &h00 // BRK
 		    TotalCycles = TotalCycles + ExecuteBRK
 		    
+		  Case &h01 // ORA
+		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.XIndexedZeroPageIndirect)
+		    
 		  Else
 		    // Invalid opcode. Halt the CPU.
 		    Halted = True
 		    Raise New MOS6502.Error("Invalid opcode " + opcode.ToString + ".")
 		  End Select
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 546865204F524120696E737472756374696F6E207472616E736665727320746865206D656D6F727920616E642074686520616363756D756C61746F7220746F2074686520616464657220776869636820706572666F726D7320612062696E61727920224F5222206F6E2061206269742D62792D62697420626173697320616E642073746F7265732074686520726573756C7420696E2074686520616363756D756C61746F722E2052657475726E7320746865206E756D626572206F66206379636C65732074616B656E2E
+		Private Function ExecuteORA(addressMode As MOS6502.AddressModes) As Integer
+		  /// The ORA instruction transfers the memory and the accumulator to the adder which performs a 
+		  /// binary "OR" on a bit-by-bit basis and stores the result in the accumulator.
+		  /// Returns the number of cycles taken.
+		  /// 
+		  /// Operation: A ∨ M → A
+		  ///
+		  /// This instruction affects the accumulator.
+		  /// Sets the zero flag if the result in the accumulator is 0, otherwise resets the zero flag
+		  /// Sets the negative flag if the result in the accumulator has bit 7 on, otherwise resets the 
+		  /// negative flag.
+		  
+		  // Get the data.
+		  Var data As UInt8 = MemoryFetch(addressMode)
+		  
+		  A = A Or data
+		  
+		  // Zero flag.
+		  If A = 0 Then
+		    P = P Or &b00000010 // Set the zero flag.
+		  Else
+		    P = P And &b11111101 // Clear the zero flag.
+		  End If
+		  
+		  // Negative flag.
+		  If (A And &b10000000) <> 0 Then
+		    P = P Or &b10000000 // Set the negative flag.
+		  Else 
+		    P = P And &b01111111 // Clear the negative flag.
+		  End If
+		  
+		  // How many cycles?
+		  Select Case addressMode
+		  Case addressModes.XIndexedZeroPageIndirect
+		    Return 6
+		  Else
+		    Raise New UnsupportedOperationException("Unsupported ORA instruction.")
+		  End Select
+		  
+		  
 		End Function
 	#tag EndMethod
 
@@ -70,6 +136,26 @@ Protected Class CPU
 		  PC = PC + 1
 		  
 		  Return value
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 46657463686573206120627974652066726F6D206D656D6F72792E
+		Private Function MemoryFetch(addressMode As MOS6502.AddressModes) As UInt8
+		  /// Fetches a byte from memory.
+		  
+		  Select Case addressMode
+		  Case addressModes.XIndexedZeroPageIndirect
+		    Var lowAddress As UInt16 = (X + FetchByte) And &hFF // Constrain to 8-bits.
+		    Var highAddress As UInt16 = (lowAddress + 1) And &hFF // Constrain to 8-bits.
+		    Var lowAddressByte As UInt8 = Memory(lowAddress)
+		    Var highAddressByte As UInt8 = Memory(highAddress)
+		    Var addressByte As UInt16 = ShiftLeft(highAddressByte, 8) Or lowAddressByte
+		    Return Memory(addressByte)
+		    
+		  Else
+		    Raise New UnsupportedOperationException("Unsupported address mode.")
+		  End Select
 		  
 		End Function
 	#tag EndMethod
@@ -128,6 +214,114 @@ Protected Class CPU
 		End Sub
 	#tag EndMethod
 
+
+	#tag Note, Name = Address Modes
+		Credit: https://www.pagetable.com/c64ref/6502/?tab=3#a16,X
+		
+		Absolute
+		--------
+		3 bytes.
+		The second byte of the instruction specifies the eight low order bits of the effective 
+		address while the third byte specifies the eight high order bits. 
+		Thus, the absolute addressing mode allows access to the entire 65 K bytes of addressable memory.
+		
+		Absolute Indirect
+		-----------------
+		3 bytes.
+		The second byte of the instruction contains the low order eight bits of a memory location. 
+		The high order eight bits of that memory location is contained in the third byte of the instruction.
+		The contents of the fully specified memory location is the low order byte of the effective address. 
+		The next memory location contains the high order byte of the effective address which is loaded into 
+		the sixteen bits of the program counter.
+		
+		Accumulator
+		-----------
+		1 byte.
+		Represented with a one byte instruction, implying an operation on the accumulator.
+		
+		Immediate
+		---------
+		2 bytes.
+		The operand is contained in the second byte of the instruction, with no further memory 
+		addressing required.
+		
+		Implied
+		-------
+		1 byte.
+		The address containing the operand is implicitly stated in the operation code of the instruction.
+		
+		Relative
+		--------
+		2 bytes.
+		Used only with branch instructions and establishes a destination for the conditional branch.
+		The second byte of-the instruction becomes the operand which is an “Offset" added to the contents of 
+		the lower eight bits of the program counter when the counter is set at the next instruction. 
+		The range of the offset is —128 to +127 bytes from the next instruction.
+		
+		X-Indexed Absolute
+		------------------
+		3 bytes.
+		Used in conjunction with the X index register. The effective address is formed by adding the 
+		contents of X to the address contained in the second and third bytes of the instruction. 
+		This mode allows the index register to contain the index or count value and the instruction 
+		to contain the base address. This type of indexing allows any location referencing and the 
+		index to modify multiple fields resulting in reduced coding and execution time.
+		
+		X-Indexed Zero Page
+		-------------------
+		2 bytes.
+		Used in conjunction with the X index register. The effective address is 
+		calculated by adding the second byte to the contents of the index register. Since this is a 
+		form of "Zero Page" addressing, the content of the second byte references a location in page zero.
+		Additionally, due to the “Zero Page" addressing nature of this mode, no carry is added to the 
+		high order 8 bits of memory and crossing of page boundaries does not occur.
+		
+		X-Indexed Zero Page Indirect
+		----------------------------
+		2 bytes.
+		The second byte of the instruction is added to the contents of the 
+		X index register, discarding the carry. The result of this addition points to a memory location on 
+		page zero whose contents is the low order eight bits of the effective address. The next memory 
+		location in page zero contains the high order eight bits of the effective address. 
+		Both memory locations specifying the high and low order bytes of the effective address must be in 
+		page zero.
+		
+		Y-Indexed Absolute
+		------------------
+		3 bytes.
+		Used in conjunction with the Y index register. 
+		The effective address is formed by adding the contents of Y to the address contained in the 
+		second and third bytes of the instruction. This mode allows the index register to contain the 
+		index or count value and the instruction to contain the base address. 
+		This type of indexing allows any location referencing and the index to modify multiple fields 
+		resulting in reduced coding and execution time.
+		
+		Y-Indexed Zero Page
+		-------------------
+		2 bytes.
+		Used in conjunction with the Y index register. The effective address 
+		is calculated by adding the second byte to the contents of the index register. Since this is a 
+		form of "Zero Page" addressing, the content of the second byte references a location in page zero.
+		Additionally, due to the “Zero Page" addressing nature of this mode, no carry is added to the 
+		high order 8 bits of memory and crossing of page boundaries does not occur.
+		
+		Zero Page
+		---------
+		2 bytes.
+		The zero page instructions allow for shorter code and execution times by only fetching the second 
+		byte of the instruction and assuming a zero high address byte. Careful use of the zero page can 
+		result in significant increase in code efficiency.
+		
+		Zero Page Indirect Y-Indexed
+		----------------------------
+		2 bytes.
+		The second byte of the instruction points to a memory location in page zero. The contents of this 
+		memory location is added to the contents of the Y index register, the result being the low order 
+		eight bits of the effective address. The carry from this addition is added to the contents of the
+		next page zero memory location, the result being the high order eight bits of the effective address.
+		
+		
+	#tag EndNote
 
 	#tag Note, Name = Status Register (P)
 		Bit:  7 6 5 4 3 2 1 0

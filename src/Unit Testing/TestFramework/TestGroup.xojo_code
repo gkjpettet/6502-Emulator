@@ -67,7 +67,7 @@ Protected Class TestGroup
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub Constructor(controller As TestController, groupName As String = "")
+		Sub Constructor(controller As TestController, groupName As String = "", stopTestOnFail As Boolean = False)
 		  groupName = groupName.Trim
 		  
 		  //
@@ -80,6 +80,8 @@ Protected Class TestGroup
 		  
 		  Name = groupName
 		  Self.Controller = controller
+		  
+		  Self.StopTestOnFail = stopTestOnFail
 		  
 		  controller.AddGroup(Self)
 		  

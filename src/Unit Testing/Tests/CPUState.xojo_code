@@ -1,6 +1,12 @@
 #tag Class
 Protected Class CPUState
 	#tag Method, Flags = &h0
+		Sub Constructor()
+		  Memory = New Dictionary
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub Constructor(d As Dictionary, testName As String = "")
 		  /// Constructs a new CPU state from a dictionary derived from a JSON test file.
 		  
@@ -27,6 +33,29 @@ Protected Class CPUState
 		    Next entry
 		  End If
 		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0, Description = 52657475726E732061206E6577204350552073746174652C2074616B696E67206974732076616C7565732066726F6D2074686520706173736564204350552C2073657474696E6720746865206D656D6F72792076616C75657320746F206F6E6C792074686F736520696E20746865206578706563746564204350552073746174652E
+		Shared Function FromCPUAndExpected(expectedState As CPUState, cpu As MOS6502.CPU) As CPUState
+		  /// Returns a new CPU state, taking its values from the passed CPU, setting the memory values to only 
+		  /// those in the expected CPU state.
+		  
+		  Var state As New CPUState
+		  
+		  state.A = cpu.A
+		  state.P = cpu.P
+		  state.PC = cpu.PC
+		  state.SP = cpu.SP
+		  state.X = cpu.X
+		  state.Y = cpu.Y
+		  
+		  For Each entry As DictionaryEntry In expectedState.Memory
+		    state.Memory.Value(entry.Key) = entry.Value
+		  Next entry
+		  
+		  Return state
+		  
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 4C656674206A75737469666965732060736020746F20607769647468602063686172616374657273207573696E672060636861726020746F207061642074686520726967687420656467652069662072657175697265642E
@@ -58,11 +87,6 @@ Protected Class CPUState
 		  
 		  Var s() As String
 		  
-		  If Self.TestName <> "" Then
-		    s.Add("Test Name: " + Self.TestName)
-		    s.Add(EndOfLine)
-		  End If
-		  
 		  s.Add("A:  " + Self.A.ToString)
 		  s.Add("P:  " + Self.P.ToString)
 		  s.Add("SP: " + Self.SP.ToString)
@@ -82,13 +106,6 @@ Protected Class CPUState
 		      Var value As UInt8 = entry.Value
 		      
 		      Var addressStr As String = address.ToString
-		      ' If addressStr.Length < 8 Then
-		      ' Var tmp() As String = addressStr.Split("")
-		      ' For i As Integer = addressStr.Length To 8
-		      ' tmp.Add(" ")
-		      ' Next i
-		      ' addressStr = String.FromArray(tmp, "")
-		      ' End If
 		      addressStr = JustifyLeft(addressStr, 8, " ")
 		      s.Add(addressStr + "| " + value.ToString)
 		    Next entry

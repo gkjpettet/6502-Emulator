@@ -72,8 +72,14 @@ Protected Class CPU
 		  Case &h00 // BRK
 		    TotalCycles = TotalCycles + ExecuteBRK
 		    
-		  Case &h01 // ORA
+		  Case &h01 // ORA ($nn,X)
 		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.XIndexedZeroPageIndirect)
+		    
+		  Case &h09 // ORA #$nn
+		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.Immediate)
+		    
+		  Case &h0D // ORA $nnnn
+		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.Absolute)
 		    
 		  Else
 		    // Invalid opcode. Halt the CPU.
@@ -101,23 +107,19 @@ Protected Class CPU
 		  
 		  A = A Or data
 		  
-		  // Zero flag.
-		  If A = 0 Then
-		    P = P Or &b00000010 // Set the zero flag.
-		  Else
-		    P = P And &b11111101 // Clear the zero flag.
-		  End If
+		  ZeroFlag(A = 0)
 		  
-		  // Negative flag.
-		  If (A And &b10000000) <> 0 Then
-		    P = P Or &b10000000 // Set the negative flag.
-		  Else 
-		    P = P And &b01111111 // Clear the negative flag.
-		  End If
+		  NegativeFlag((A And &b10000000) <> 0)
 		  
 		  // How many cycles?
 		  Select Case addressMode
-		  Case addressModes.XIndexedZeroPageIndirect
+		  Case AddressModes.Absolute
+		    Return 4
+		    
+		  Case AddressModes.Immediate
+		    Return 2
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
 		    Return 6
 		  Else
 		    Raise New UnsupportedOperationException("Unsupported ORA instruction.")
@@ -145,7 +147,14 @@ Protected Class CPU
 		  /// Fetches a byte from memory.
 		  
 		  Select Case addressMode
-		  Case addressModes.XIndexedZeroPageIndirect
+		  Case AddressModes.Absolute
+		    Var lsb As UInt16 = FetchByte
+		    Return Memory(CType(FetchByte, UInt16) * 256 + lsb)
+		    
+		  Case AddressModes.Immediate
+		    Return FetchByte
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
 		    Var lowAddress As UInt16 = (X + FetchByte) And &hFF // Constrain to 8-bits.
 		    Var highAddress As UInt16 = (lowAddress + 1) And &hFF // Constrain to 8-bits.
 		    Var lowAddressByte As UInt8 = Memory(lowAddress)
@@ -158,6 +167,19 @@ Protected Class CPU
 		  End Select
 		  
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 5365747320746865206E6567617469766520666C616720286269742037206F662074686520737461747573207265676973746572292069662060736574203D2054727565602C207265736574732069662060736574203D2046616C7365602E
+		Private Sub NegativeFlag(set As Boolean)
+		  /// Sets the negative flag (bit 7 of the status register) if `set = True`, resets if `set = False`.
+		  
+		  If set Then
+		    P = P Or &b10000000
+		  Else 
+		    P = P And &b01111111
+		  End If
+		  
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 50757368657320612073696E676C65206279746520746F20746865206D656D6F7279206C6F636174696F6E20706F696E74656420746F2062792074686520737461636B20706F696E746572202853502920616E64207468656E2064656372656D656E74732074686520737461636B20706F696E7465722E
@@ -211,6 +233,19 @@ Protected Class CPU
 		  
 		  Halted = False
 		  TotalCycles = 0
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 5365747320746865207A65726F20666C616720286269742031206F662074686520737461747573207265676973746572292069662060736574203D2054727565602C207265736574732069662060736574203D2046616C7365602E
+		Private Sub ZeroFlag(set As Boolean)
+		  /// Sets the zero flag (bit 1 of the status register) if `set = True`, resets if `set = False`.
+		  
+		  If set Then
+		    P = P Or &b00000010
+		  Else
+		    P = P And &b11111101
+		  End If
+		  
 		End Sub
 	#tag EndMethod
 

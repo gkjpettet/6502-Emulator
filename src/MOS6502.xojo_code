@@ -4,7 +4,7 @@ Protected Module MOS6502
 		Absolute
 		  AbsoluteIndirect
 		  Accumulator
-		  Imediate
+		  Immediate
 		  Implied
 		  Relative
 		  XIndexedAbsolute

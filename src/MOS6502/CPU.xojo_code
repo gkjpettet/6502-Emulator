@@ -1,5 +1,98 @@
 #tag Class
 Protected Class CPU
+	#tag Method, Flags = &h21, Description = 41726974686D65746963207368696674206C6566742E20536869667473206569746865722074686520616363756D756C61746F72206F72207468652061646472657373206D656D6F7279206C6F636174696F6E20312062697420746F20746865206C6566742C20776974682074686520626974203020616C77617973206265696E672073657420746F203020616E64207468652074686520696E707574206269742037206265696E672073746F72656420696E2074686520636172727920666C61672E
+		Private Sub ASL(addressMode As MOS6502.AddressModes)
+		  /// Arithmetic shift left.
+		  /// Shifts either the accumulator or the address memory location 1 bit to the left, with the 
+		  /// bit 0 always being set to 0 and the the input bit 7 being stored in the carry flag.
+		  ///
+		  /// Operation: C ← /M7...M0/ ← 0
+		  ///
+		  /// ASL either shifts the accumulator left 1 bit or is a read/modify/write instruction that 
+		  /// affects only memory.
+		  /// The instruction does not affect the overflow bit.
+		  /// Sets N equal to the result bit 7 (bit 6 in the input).
+		  /// Sets Z flag if the result is equal to 0, otherwise resets Z and stores the input bit 7 in 
+		  /// the carry flag.
+		  
+		  Var address As UInt16
+		  Var data As UInt8
+		  If addressMode <> Addressmodes.Accumulator Then
+		    address = EffectiveAddress(addressMode)
+		    data = Memory(address)
+		  Else
+		    data = A
+		  End If
+		  
+		  // Compute the result.
+		  Var result As UInt8 = ShiftLeft(data, 1)
+		  
+		  // Store the result back where it came from.
+		  If addressMode = AddressModes.Accumulator Then
+		    A = result
+		  Else
+		    Memory(address) = result
+		  End If
+		  
+		  CarryFlag((data And &h80) <> 0) // &b10000000
+		  NegativeFlag((data And &h40) <> 0) // &b01000000
+		  ZeroFlag(result = 0)
+		  
+		  // How many cycles?
+		  Select Case addressMode
+		  Case AddressModes.Accumulator
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 7
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 5
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 6
+		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 4578656375746573207468652042524B206F70636F64652C2072657475726E696E6720746865206E756D626572206F66206379636C65732074616B656E2E
+		Private Sub BRK()
+		  /// Executes the BRK opcode, returning the number of cycles taken.
+		  
+		  // Push the program counter + 1 to the stack.
+		  PushWord(PC + 1)
+		  
+		  // Push the status to the stack, setting the break flag of the saved byte to 1 (bit 4).
+		  PushByte(P Or &h10)
+		  
+		  // Set the interrupt disable flag (bit 2).
+		  P = P Or &h04
+		  
+		  // Load the interrupt vector from memory locations &hFFFE and &hFFFF
+		  PC = ShiftLeft(Memory.Read(&hFFFF), 8) Or Memory.Read(&hFFFE)
+		  
+		  TotalCycles = TotalCycles + 7
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 5365747320746865207A65726F20666C616720286269742031206F662074686520737461747573207265676973746572292069662060736574203D2054727565602C207265736574732069662060736574203D2046616C7365602E
+		Private Sub CarryFlag(set As Boolean)
+		  /// Sets the carry flag (bit 0 of the status register) if `set = True`, resets if `set = False`.
+		  
+		  If set Then
+		    P = P Or &b00000001
+		  Else
+		    P = P And &b11111110
+		  End If
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Function Clone() As MOS6502.CPU
 		  /// Returns a clone of this CPU. Mostly used for debugging whilst testing.
@@ -27,137 +120,123 @@ Protected Class CPU
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 52657475726E732074686520656666656374697665206164647265737320676976656E20616E2061646472657373206D6F64652E20446F206E6F74207573652074686973206D6574686F64206966207468652061646472657373206D6F646520697320416363756D756C61746F722E2055706461746573206050436020616E64206043726F7373656450616765426F756E64617279602E
+		Private Function EffectiveAddress(addressMode As MOS6502.AddressModes) As UInt16
+		  /// Returns the effective address given an address mode.
+		  /// Do not use this method if the address mode is Accumulator.
+		  /// Updates `PC` and `CrossedPageBoundary`.
+		  
+		  CrossedPageBoundary = False
+		  
+		  Select Case addressMode
+		  Case AddressModes.Absolute
+		    Var lsb As UInt16 = FetchByte
+		    Return CType(FetchByte, UInt16) * 256 + lsb
+		    
+		  Case AddressModes.Immediate
+		    Return FetchByte
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    #Pragma Warning "TODO: Figure out page boundary crossing"
+		    Var baseLSB As UInt8 = FetchByte
+		    Return CType(FetchByte, UInt16) * 256 + baseLSB + X
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    Return FetchByte + X
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
+		    Var lowAddress As UInt16 = (X + FetchByte) And &hFF // Constrain to 8-bits.
+		    Var highAddress As UInt16 = (lowAddress + 1) And &hFF // Constrain to 8-bits.
+		    Var lowAddressByte As UInt8 = Memory(lowAddress)
+		    Var highAddressByte As UInt8 = Memory(highAddress)
+		    Var addressByte As UInt16 = ShiftLeft(highAddressByte, 8) Or lowAddressByte
+		    Return addressByte
+		    
+		  Case AddressModes.YIndexedAbsolute
+		    #Pragma Warning "TODO: Figure out page boundary crossing"
+		    Var baseLSB As UInt8 = FetchByte
+		    Var baseAddress As UInt16 = CType(FetchByte, UInt16) * 256 + baseLSB + Y
+		    Return baseAddress
+		    
+		  Case AddressModes.ZeroPage
+		    Return FetchByte
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    Var zeroPageAddress As UInt8 = FetchByte
+		    Var zeroPageContents As UInt8 = Memory(zeroPageAddress)
+		    Var lsb As UInt16 = zeroPageContents + Y
+		    Var carry As Integer = 0
+		    If lsb < zeroPageContents Then
+		      carry = 1
+		      CrossedPageBoundary = True
+		    End If
+		    
+		    Var msbAddress As UInt8 = zeroPageAddress + 1
+		    Var msb As UInt16 = Memory(msbAddress) + carry
+		    Var actualAddress As UInt16 = (msb * 256) + lsb
+		    Return actualAddress
+		    
+		  Else
+		    Raise New UnsupportedOperationException("Unsupported address mode.")
+		  End Select
+		  
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 457865637574657320746865206E65787420696E737472756374696F6E2E205468697320697320612073696E676C652066657463682F6465636F64652F6578656375746520737465702E
 		Sub Execute()
 		  /// Executes the next instruction. 
 		  /// This is a single fetch/decode/execute step.
 		  
 		  If Not Halted Then
-		    Var opcode As UInt8 = FetchByte
-		    Var cycles As Integer = ExecuteInstruction(opcode)
-		    TotalCycles = TotalCycles + cycles
+		    ExecuteInstruction(FetchByte)
 		  End If
 		  
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h21, Description = 4578656375746573207468652042524B206F70636F64652C2072657475726E696E6720746865206E756D626572206F66206379636C65732074616B656E2E
-		Private Function ExecuteBRK() As Integer
-		  /// Executes the BRK opcode, returning the number of cycles taken.
-		  
-		  // Push the program counter + 1 to the stack.
-		  PushWord(PC + 1)
-		  
-		  // Push the status to the stack, setting the break flag of the saved byte to 1 (bit 4).
-		  PushByte(P Or &h10)
-		  
-		  // Set the interrupt disable flag (bit 2).
-		  P = P Or &h04
-		  
-		  // Load the interrupt vector from memory locations &hFFFE and &hFFFF
-		  PC = ShiftLeft(Memory.Read(&hFFFF), 8) Or Memory.Read(&hFFFE)
-		  
-		  // 7 cycles.
-		  Return 7
-		  
-		End Function
-	#tag EndMethod
-
 	#tag Method, Flags = &h21, Description = 457865637574657320606F70636F64656020616E642072657475726E7320746865206E756D626572206F66206379636C657320697420746F6F6B2E
-		Private Function ExecuteInstruction(opcode As UInt8) As Integer
+		Private Sub ExecuteInstruction(opcode As UInt8)
 		  /// Executes `opcode` and returns the number of cycles it took.
 		  
 		  Select Case opcode
 		    
 		  Case &h00 // BRK
-		    TotalCycles = TotalCycles + ExecuteBRK
+		    BRK
 		    
 		  Case &h01 // ORA ($nn,X)
-		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.XIndexedZeroPageIndirect)
+		    ORA(AddressModes.XIndexedZeroPageIndirect)
 		    
 		  Case &h05 // ORA $nn
-		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.ZeroPage)
+		    ORA(AddressModes.ZeroPage)
+		    
+		  Case &h06 // ASL $nn
+		    ASL(AddressModes.ZeroPage)
 		    
 		  Case &h09 // ORA #$nn
-		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.Immediate)
+		    ORA(AddressModes.Immediate)
 		    
 		  Case &h0D // ORA $nnnn
-		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.Absolute)
+		    ORA(AddressModes.Absolute)
 		    
 		  Case &h11 // ORA ($nn),Y
-		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.ZeroPageIndirectYIndexed)
+		    ORA(AddressModes.ZeroPageIndirectYIndexed)
 		    
 		  Case &h15 // ORA $nn,X
-		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.XIndexedZeroPage)
+		    ORA(AddressModes.XIndexedZeroPage)
 		    
 		  Case &h19 // ORA $nnnn,Y
-		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.YIndexedAbsolute)
+		    ORA(AddressModes.YIndexedAbsolute)
 		    
 		  Case &h1D // ORA $nnnn,X
-		    TotalCycles = TotalCycles + ExecuteORA(AddressModes.XIndexedAbsolute)
+		    ORA(AddressModes.XIndexedAbsolute)
 		    
 		  Else
 		    // Invalid opcode. Halt the CPU.
 		    Halted = True
 		    Raise New MOS6502.Error("Invalid opcode " + opcode.ToString + ".")
 		  End Select
-		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h21, Description = 546865204F524120696E737472756374696F6E207472616E736665727320746865206D656D6F727920616E642074686520616363756D756C61746F7220746F2074686520616464657220776869636820706572666F726D7320612062696E61727920224F5222206F6E2061206269742D62792D62697420626173697320616E642073746F7265732074686520726573756C7420696E2074686520616363756D756C61746F722E2052657475726E7320746865206E756D626572206F66206379636C65732074616B656E2E
-		Private Function ExecuteORA(addressMode As MOS6502.AddressModes) As Integer
-		  /// The ORA instruction transfers the memory and the accumulator to the adder which performs a 
-		  /// binary "OR" on a bit-by-bit basis and stores the result in the accumulator.
-		  /// Returns the number of cycles taken.
-		  /// 
-		  /// Operation: A ∨ M → A
-		  ///
-		  /// This instruction affects the accumulator.
-		  /// Sets the zero flag if the result in the accumulator is 0, otherwise resets the zero flag
-		  /// Sets the negative flag if the result in the accumulator has bit 7 on, otherwise resets the 
-		  /// negative flag.
-		  
-		  // Get the data.
-		  Var data As UInt8 = MemoryFetch(addressMode)
-		  
-		  A = A Or data
-		  
-		  ZeroFlag(A = 0)
-		  
-		  NegativeFlag((A And &b10000000) <> 0)
-		  
-		  // How many cycles?
-		  Select Case addressMode
-		  Case AddressModes.Absolute
-		    Return 4
-		    
-		  Case AddressModes.Immediate
-		    Return 2
-		    
-		  Case AddressModes.XIndexedAbsolute
-		    Return 4 + If(CrossedPageBoundary, 1, 0)
-		    
-		  Case AddressModes.XIndexedZeroPage
-		    Return 4
-		    
-		  Case AddressModes.XIndexedZeroPageIndirect
-		    Return 6
-		    
-		  Case AddressModes.YIndexedAbsolute
-		    Return 4 + If(CrossedPageBoundary, 1, 0)
-		    
-		  Case AddressModes.ZeroPage
-		    Return 3
-		    
-		  Case AddressModes.ZeroPageIndirectYIndexed
-		    Return 5 + If(CrossedPageBoundary, 1, 0)
-		    
-		  Else
-		    Raise New UnsupportedOperationException("Unsupported ORA instruction.")
-		  End Select
-		  
-		  
-		End Function
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 4665746368657320746865206E65787420627974652066726F6D206D656D6F7279202861742061646472657373205043292E
@@ -173,69 +252,6 @@ Protected Class CPU
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21, Description = 46657463686573206120627974652066726F6D206D656D6F72792E
-		Private Function MemoryFetch(addressMode As MOS6502.AddressModes) As UInt8
-		  /// Fetches a byte from memory.
-		  
-		  CrossedPageBoundary = False
-		  
-		  Select Case addressMode
-		  Case AddressModes.Absolute
-		    Var lsb As UInt16 = FetchByte
-		    Return Memory(CType(FetchByte, UInt16) * 256 + lsb)
-		    
-		  Case AddressModes.Immediate
-		    Return FetchByte
-		    
-		  Case AddressModes.XIndexedAbsolute
-		    #Pragma Warning "TODO: Figure out page boundary crossing"
-		    Var baseLSB As UInt8 = FetchByte
-		    Var baseAddress As UInt16 = CType(FetchByte, UInt16) * 256 + baseLSB + X
-		    Return Memory(baseAddress)
-		    
-		  Case AddressModes.XIndexedZeroPage
-		    Var zeroPageAddress As UInt8 = FetchByte + X
-		    Return Memory(zeroPageAddress)
-		    
-		  Case AddressModes.XIndexedZeroPageIndirect
-		    Var lowAddress As UInt16 = (X + FetchByte) And &hFF // Constrain to 8-bits.
-		    Var highAddress As UInt16 = (lowAddress + 1) And &hFF // Constrain to 8-bits.
-		    Var lowAddressByte As UInt8 = Memory(lowAddress)
-		    Var highAddressByte As UInt8 = Memory(highAddress)
-		    Var addressByte As UInt16 = ShiftLeft(highAddressByte, 8) Or lowAddressByte
-		    Return Memory(addressByte)
-		    
-		  Case AddressModes.YIndexedAbsolute
-		    #Pragma Warning "TODO: Figure out page boundary crossing"
-		    Var baseLSB As UInt8 = FetchByte
-		    Var baseAddress As UInt16 = CType(FetchByte, UInt16) * 256 + baseLSB + Y
-		    Return Memory(baseAddress)
-		    
-		  Case AddressModes.ZeroPage
-		    Return Memory(FetchByte)
-		    
-		  Case AddressModes.ZeroPageIndirectYIndexed
-		    Var zeroPageAddress As UInt8 = FetchByte
-		    Var zeroPageContents As UInt8 = Memory(zeroPageAddress)
-		    Var lsb As UInt16 = zeroPageContents + Y
-		    Var carry As Integer = 0
-		    If lsb < zeroPageContents Then
-		      carry = 1
-		      CrossedPageBoundary = True
-		    End If
-		    
-		    Var msbAddress As UInt8 = zeroPageAddress + 1
-		    Var msb As UInt16 = Memory(msbAddress) + carry
-		    Var actualAddress As UInt16 = (msb * 256) + lsb
-		    Return Memory(actualAddress)
-		    
-		  Else
-		    Raise New UnsupportedOperationException("Unsupported address mode.")
-		  End Select
-		  
-		End Function
-	#tag EndMethod
-
 	#tag Method, Flags = &h21, Description = 5365747320746865206E6567617469766520666C616720286269742037206F662074686520737461747573207265676973746572292069662060736574203D2054727565602C207265736574732069662060736574203D2046616C7365602E
 		Private Sub NegativeFlag(set As Boolean)
 		  /// Sets the negative flag (bit 7 of the status register) if `set = True`, resets if `set = False`.
@@ -245,6 +261,66 @@ Protected Class CPU
 		  Else 
 		    P = P And &b01111111
 		  End If
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 546865204F524120696E737472756374696F6E207472616E736665727320746865206D656D6F727920616E642074686520616363756D756C61746F7220746F2074686520616464657220776869636820706572666F726D7320612062696E61727920224F5222206F6E2061206269742D62792D62697420626173697320616E642073746F7265732074686520726573756C7420696E2074686520616363756D756C61746F722E2052657475726E7320746865206E756D626572206F66206379636C65732074616B656E2E
+		Private Sub ORA(addressMode As MOS6502.AddressModes)
+		  /// The ORA instruction transfers the memory and the accumulator to the adder which performs a 
+		  /// binary "OR" on a bit-by-bit basis and stores the result in the accumulator.
+		  /// 
+		  /// Operation: A ∨ M → A
+		  ///
+		  /// This instruction affects the accumulator.
+		  /// Sets the zero flag if the result in the accumulator is 0, otherwise resets the zero flag
+		  /// Sets the negative flag if the result in the accumulator has bit 7 on, otherwise resets the 
+		  /// negative flag.
+		  
+		  // Get the data.
+		  Var data As UInt8
+		  If addressMode = AddressModes.Immediate Then
+		    data = FetchByte
+		  Else
+		    data = Memory(EffectiveAddress(addressMode))
+		  End If
+		  
+		  A = A Or data
+		  
+		  ZeroFlag(A = 0)
+		  
+		  NegativeFlag((A And &b10000000) <> 0)
+		  
+		  // How many cycles?
+		  Select Case addressMode
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.Immediate
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.YIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    TotalCycles = TotalCycles + 5 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Else
+		    Raise New UnsupportedOperationException("Unsupported ORA instruction.")
+		  End Select
+		  
 		  
 		End Sub
 	#tag EndMethod

@@ -58,6 +58,12 @@ Inherits TestGroup
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub Opcode06Test()
+		  Run("06")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub Opcode09Test()
 		  Run("09")
 		End Sub
@@ -111,7 +117,7 @@ Inherits TestGroup
 		    Var expected As New CPUState(test.Value("final"), test.Lookup("name", ""))
 		    SetCPUState(initial)
 		    
-		    ' if test.Value("name") = "11 ff ff" then
+		    ' if test.Value("name") = "06 89 7c" then
 		    ' break
 		    ' end if
 		    

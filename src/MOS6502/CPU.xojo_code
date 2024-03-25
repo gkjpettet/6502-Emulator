@@ -260,6 +260,10 @@ Protected Class CPU
 		  Case &h16 // ASL $nn,X
 		    ASL(AddressModes.XIndexedZeroPage)
 		    
+		  Case &h18 // CLC
+		    CarryFlag = False
+		    TotalCycles = TotalCycles + 2
+		    
 		  Case &h19 // ORA $nnnn,Y
 		    ORA(AddressModes.YIndexedAbsolute)
 		    

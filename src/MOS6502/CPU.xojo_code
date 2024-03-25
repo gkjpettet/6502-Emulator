@@ -202,11 +202,20 @@ Protected Class CPU
 		  Case &h06 // ASL $nn
 		    ASL(AddressModes.ZeroPage)
 		    
+		  Case &h08 // PHP
+		    PHP
+		    
 		  Case &h09 // ORA #$nn
 		    ORA(AddressModes.Immediate)
 		    
+		  Case &h0A // ASL A
+		    ASL(AddressModes.Accumulator)
+		    
 		  Case &h0D // ORA $nnnn
 		    ORA(AddressModes.Absolute)
+		    
+		  Case &h0E // ASL $nnnn
+		    ASL(AddressModes.Absolute)
 		    
 		  Case &h11 // ORA ($nn),Y
 		    ORA(AddressModes.ZeroPageIndirectYIndexed)
@@ -214,11 +223,17 @@ Protected Class CPU
 		  Case &h15 // ORA $nn,X
 		    ORA(AddressModes.XIndexedZeroPage)
 		    
+		  Case &h16 // ASL $nn,X
+		    ASL(AddressModes.XIndexedZeroPage)
+		    
 		  Case &h19 // ORA $nnnn,Y
 		    ORA(AddressModes.YIndexedAbsolute)
 		    
 		  Case &h1D // ORA $nnnn,X
 		    ORA(AddressModes.XIndexedAbsolute)
+		    
+		  Case &h1E // ASL $nnnn,X
+		    ASL(AddressModes.XIndexedAbsolute)
 		    
 		  Else
 		    // Invalid opcode. Halt the CPU.
@@ -297,6 +312,22 @@ Protected Class CPU
 		    Raise New UnsupportedOperationException("Unsupported ORA instruction.")
 		  End Select
 		  
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 504850202D20507573682050726F636573736F7220537461747573204F6E20537461636B2E
+		Private Sub PHP()
+		  /// PHP - Push Processor Status On Stack.
+		  ///
+		  /// Operation: P↓
+		  /// Transfers the contents of the processor status reg­ister unchanged to the stack, as governed by 
+		  /// the stack pointer.
+		  /// Affects no registers or flags in the micropro­cessor.
+		  
+		  PushByte(P)
+		  
+		  TotalCycles = TotalCycles + 3
 		  
 		End Sub
 	#tag EndMethod

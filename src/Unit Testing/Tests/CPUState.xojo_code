@@ -89,13 +89,21 @@ Protected Class CPUState
 		  
 		  s.Add("A:  " + Self.A.ToString)
 		  s.Add("P:  " + Self.P.ToString)
-		  's.Add("SP: " + Self.SP.ToString)
 		  s.Add("PC: " + Self.PC.ToString)
 		  s.Add("X:  " + Self.X.ToString)
 		  s.Add("Y:  " + Self.Y.ToString)
 		  
 		  s.Add("")
 		  s.Add("N V - B D I Z C")
+		  
+		  Var N As String = If(NegativeFlag, "1 ", "0 ")
+		  Var V As String = If(OverflowFlag, "1 ", "0 ")
+		  Var B As String = If(BreakFlag, "1 ", "0 ")
+		  Var D As String = If(DecimalFlag, "1 ", "0 ")
+		  Var I As String = If(InterruptDisableFlag, "1 ", "0 ")
+		  Var Z As String = If(ZeroFlag, "1 ", "0 ")
+		  Var C As String = If(CarryFlag, "1 ", "0 ")
+		  s.Add(N + V + "- " + B + D + I + Z + C)
 		  s.Add("")
 		  
 		  If Self.Memory.KeyCount > 0 Then
@@ -124,9 +132,117 @@ Protected Class CPUState
 		A As UInt8
 	#tag EndProperty
 
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00010000) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b00010000
+			  Else
+			    P = P And &b11101111
+			  End If
+			End Set
+		#tag EndSetter
+		BreakFlag As Boolean
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00000001) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b00000001
+			  Else
+			    P = P And &b11111110
+			  End If
+			End Set
+		#tag EndSetter
+		CarryFlag As Boolean
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00001000) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b00001000
+			  Else
+			    P = P And &b11110111
+			  End If
+			End Set
+		#tag EndSetter
+		DecimalFlag As Boolean
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00000100) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b00000100
+			  Else
+			    P = P And &b11111011
+			  End If
+			End Set
+		#tag EndSetter
+		InterruptDisableFlag As Boolean
+	#tag EndComputedProperty
+
 	#tag Property, Flags = &h0, Description = 4B6579203D2061646472657373202855496E743136292C2056616C7565203D2064617461202855496E7438292E
 		Memory As Dictionary
 	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b10000000) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b10000000
+			  Else 
+			    P = P And &b01111111
+			  End If
+			End Set
+		#tag EndSetter
+		NegativeFlag As Boolean
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b01000000) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b01000000
+			  Else
+			    P = P And &b10111111
+			  End If
+			End Set
+		#tag EndSetter
+		OverflowFlag As Boolean
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h0, Description = 54686520382D6269742070726F636573736F72207374617475732072656769737465722028666C616773292E
 		P As UInt8
@@ -151,6 +267,25 @@ Protected Class CPUState
 	#tag Property, Flags = &h0, Description = 382D62697420592072656769737465722E
 		Y As UInt8
 	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00000010) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b00000010
+			  Else
+			    P = P And &b11111101
+			  End If
+			  
+			End Set
+		#tag EndSetter
+		ZeroFlag As Boolean
+	#tag EndComputedProperty
 
 
 	#tag ViewBehavior

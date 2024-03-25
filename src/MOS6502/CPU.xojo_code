@@ -61,6 +61,32 @@ Protected Class CPU
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 42504C202D204272616E6368206F6E20526573756C7420506C75732E
+		Private Sub BPL()
+		  /// BPL - Branch on Result Plus.
+		  /// 
+		  /// Operation: Branch on N = 0
+		  ///
+		  /// This instruction is the complementary branch to branch on result minus. It's a conditional branch 
+		  /// which takes the branch when the N bit is reset (0). 
+		  /// BPL is used to test if the previous result bit 7 was off (0) and branch on result minus is used 
+		  /// to determine if the previous result was minus or bit 7 was on (1).
+		  ///
+		  /// The instruction affects no flags or other registers other than the P counter and only affects 
+		  /// the P counter when the N bit is reset.
+		  
+		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
+		  
+		  If Not NegativeFlag Then
+		    PC = targetAddress
+		    TotalCycles = TotalCycles + 3 + If(CrossedPageBoundary, 1, 0)
+		  Else
+		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
+		  End If
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 4578656375746573207468652042524B206F70636F64652C2072657475726E696E6720746865206E756D626572206F66206379636C65732074616B656E2E
 		Private Sub BRK()
 		  /// Executes the BRK opcode, returning the number of cycles taken.
@@ -124,6 +150,11 @@ Protected Class CPU
 		    
 		  Case AddressModes.Immediate
 		    Return FetchByte
+		    
+		  Case AddressModes.Relative
+		    #Pragma Warning "TODO: Figure out page boundary crossing"
+		    Var offset As Int8 = FetchByte // NB: Signed byte.
+		    Return PC + offset
 		    
 		  Case AddressModes.XIndexedAbsolute
 		    #Pragma Warning "TODO: Figure out page boundary crossing"
@@ -216,6 +247,9 @@ Protected Class CPU
 		    
 		  Case &h0E // ASL $nnnn
 		    ASL(AddressModes.Absolute)
+		    
+		  Case &h10 // BPL
+		    BPL
 		    
 		  Case &h11 // ORA ($nn),Y
 		    ORA(AddressModes.ZeroPageIndirectYIndexed)

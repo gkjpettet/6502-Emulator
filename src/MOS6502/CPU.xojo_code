@@ -15,6 +15,7 @@ Protected Class CPU
 		  /// Sets Z flag if the result is equal to 0, otherwise resets Z and stores the input bit 7 in 
 		  /// the carry flag.
 		  
+		  // Get the data to work on.
 		  Var address As UInt16
 		  Var data As UInt8
 		  If addressMode <> Addressmodes.Accumulator Then
@@ -34,9 +35,10 @@ Protected Class CPU
 		    Memory(address) = result
 		  End If
 		  
-		  CarryFlag((data And &h80) <> 0) // &b10000000
-		  NegativeFlag((data And &h40) <> 0) // &b01000000
-		  ZeroFlag(result = 0)
+		  // Set the flags.
+		  CarryFlag = (data And &h80) <> 0
+		  NegativeFlag = (data And &h40) <> 0
+		  ZeroFlag = (result = 0)
 		  
 		  // How many cycles?
 		  Select Case addressMode
@@ -76,19 +78,6 @@ Protected Class CPU
 		  PC = ShiftLeft(Memory.Read(&hFFFF), 8) Or Memory.Read(&hFFFE)
 		  
 		  TotalCycles = TotalCycles + 7
-		  
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h21, Description = 5365747320746865207A65726F20666C616720286269742031206F662074686520737461747573207265676973746572292069662060736574203D2054727565602C207265736574732069662060736574203D2046616C7365602E
-		Private Sub CarryFlag(set As Boolean)
-		  /// Sets the carry flag (bit 0 of the status register) if `set = True`, resets if `set = False`.
-		  
-		  If set Then
-		    P = P Or &b00000001
-		  Else
-		    P = P And &b11111110
-		  End If
 		  
 		End Sub
 	#tag EndMethod
@@ -252,19 +241,6 @@ Protected Class CPU
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21, Description = 5365747320746865206E6567617469766520666C616720286269742037206F662074686520737461747573207265676973746572292069662060736574203D2054727565602C207265736574732069662060736574203D2046616C7365602E
-		Private Sub NegativeFlag(set As Boolean)
-		  /// Sets the negative flag (bit 7 of the status register) if `set = True`, resets if `set = False`.
-		  
-		  If set Then
-		    P = P Or &b10000000
-		  Else 
-		    P = P And &b01111111
-		  End If
-		  
-		End Sub
-	#tag EndMethod
-
 	#tag Method, Flags = &h21, Description = 546865204F524120696E737472756374696F6E207472616E736665727320746865206D656D6F727920616E642074686520616363756D756C61746F7220746F2074686520616464657220776869636820706572666F726D7320612062696E61727920224F5222206F6E2061206269742D62792D62697420626173697320616E642073746F7265732074686520726573756C7420696E2074686520616363756D756C61746F722E2052657475726E7320746865206E756D626572206F66206379636C65732074616B656E2E
 		Private Sub ORA(addressMode As MOS6502.AddressModes)
 		  /// The ORA instruction transfers the memory and the accumulator to the adder which performs a 
@@ -287,9 +263,9 @@ Protected Class CPU
 		  
 		  A = A Or data
 		  
-		  ZeroFlag(A = 0)
+		  ZeroFlag = (A = 0)
 		  
-		  NegativeFlag((A And &b10000000) <> 0)
+		  NegativeFlag = (A And &b10000000) <> 0
 		  
 		  // How many cycles?
 		  Select Case addressMode
@@ -376,19 +352,6 @@ Protected Class CPU
 		  
 		  Halted = False
 		  TotalCycles = 0
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h21, Description = 5365747320746865207A65726F20666C616720286269742031206F662074686520737461747573207265676973746572292069662060736574203D2054727565602C207265736574732069662060736574203D2046616C7365602E
-		Private Sub ZeroFlag(set As Boolean)
-		  /// Sets the zero flag (bit 1 of the status register) if `set = True`, resets if `set = False`.
-		  
-		  If set Then
-		    P = P Or &b00000010
-		  Else
-		    P = P And &b11111101
-		  End If
-		  
 		End Sub
 	#tag EndMethod
 
@@ -520,17 +483,125 @@ Protected Class CPU
 		A As UInt8
 	#tag EndProperty
 
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00010000) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b00010000
+			  Else
+			    P = P And &b11101111
+			  End If
+			End Set
+		#tag EndSetter
+		BreakFlag As Boolean
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00000001) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b00000001
+			  Else
+			    P = P And &b11111110
+			  End If
+			End Set
+		#tag EndSetter
+		CarryFlag As Boolean
+	#tag EndComputedProperty
+
 	#tag Property, Flags = &h21, Description = 53657420746F205472756520647572696E672061206D656D6F72792066657463682069662061207061676520626F756E646172792069732063726F737365642E
 		Private CrossedPageBoundary As Boolean = False
 	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00001000) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b00001000
+			  Else
+			    P = P And &b11110111
+			  End If
+			End Set
+		#tag EndSetter
+		DecimalFlag As Boolean
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h0
 		Halted As Boolean = False
 	#tag EndProperty
 
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00000100) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b00000100
+			  Else
+			    P = P And &b11111011
+			  End If
+			End Set
+		#tag EndSetter
+		InterruptDisableFlag As Boolean
+	#tag EndComputedProperty
+
 	#tag Property, Flags = &h0, Description = 54686520435055277320616365737369626C65206D656D6F72792E
 		Memory As Memory
 	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b10000000) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b10000000
+			  Else 
+			    P = P And &b01111111
+			  End If
+			End Set
+		#tag EndSetter
+		NegativeFlag As Boolean
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b01000000) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b01000000
+			  Else
+			    P = P And &b10111111
+			  End If
+			End Set
+		#tag EndSetter
+		OverflowFlag As Boolean
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h0, Description = 54686520382D6269742070726F636573736F72207374617475732072656769737465722028666C616773292E
 		P As UInt8
@@ -555,6 +626,25 @@ Protected Class CPU
 	#tag Property, Flags = &h0, Description = 382D62697420592072656769737465722E
 		Y As UInt8
 	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00000010) <> 0
+			End Get
+		#tag EndGetter
+		#tag Setter
+			Set
+			  If value Then
+			    P = P Or &b00000010
+			  Else
+			    P = P And &b11111101
+			  End If
+			  
+			End Set
+		#tag EndSetter
+		ZeroFlag As Boolean
+	#tag EndComputedProperty
 
 
 	#tag ViewBehavior

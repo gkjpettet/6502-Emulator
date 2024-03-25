@@ -89,10 +89,14 @@ Protected Class CPUState
 		  
 		  s.Add("A:  " + Self.A.ToString)
 		  s.Add("P:  " + Self.P.ToString)
-		  s.Add("SP: " + Self.SP.ToString)
+		  's.Add("SP: " + Self.SP.ToString)
 		  s.Add("PC: " + Self.PC.ToString)
 		  s.Add("X:  " + Self.X.ToString)
 		  s.Add("Y:  " + Self.Y.ToString)
+		  
+		  s.Add("")
+		  s.Add("N V - B D I Z C")
+		  s.Add("")
 		  
 		  If Self.Memory.KeyCount > 0 Then
 		    s.Add("")

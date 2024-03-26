@@ -342,6 +342,18 @@ Protected Class CPU
 		  Case &h2D // AND $nnnn
 		    AND_(AddressModes.Absolute)
 		    
+		  Case &h31 // AND ($nn),Y
+		    AND_(AddressModes.ZeroPageIndirectYIndexed)
+		    
+		  Case &h35 // AND $nn,X
+		    AND_(AddressModes.XIndexedZeroPage)
+		    
+		  Case &h39 // AND $nnnn,Y
+		    AND_(AddressModes.YIndexedAbsolute)
+		    
+		  Case &h3D // AND $nnnn,X
+		    AND_(AddressModes.XIndexedAbsolute)
+		    
 		  Else
 		    // Invalid opcode. Halt the CPU.
 		    Halted = True

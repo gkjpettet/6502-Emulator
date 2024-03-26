@@ -50,7 +50,7 @@ Protected Class CPUState
 		  state.Y = cpu.Y
 		  
 		  For Each entry As DictionaryEntry In expectedState.Memory
-		    state.Memory.Value(entry.Key) = entry.Value
+		    state.Memory.Value(entry.Key) = cpu.Memory(entry.Key)
 		  Next entry
 		  
 		  Return state
@@ -89,7 +89,7 @@ Protected Class CPUState
 		  
 		  s.Add("A:  " + Self.A.ToString)
 		  s.Add("P:  " + Self.P.ToString)
-		  s.Add("PC: " + Self.PC.ToString)
+		  s.Add("PC: " + Self.PC.ToString + " (" + Self.PC.ToHex(4) + ")")
 		  s.Add("X:  " + Self.X.ToString)
 		  s.Add("Y:  " + Self.Y.ToString)
 		  
@@ -116,10 +116,11 @@ Protected Class CPUState
 		    For Each entry As DictionaryEntry In Self.Memory
 		      Var address As UInt16 = entry.Key
 		      Var value As UInt8 = entry.Value
+		      Var hexValue As String = value.ToHex(2)
 		      
 		      Var addressStr As String = address.ToString
 		      addressStr = JustifyLeft(addressStr, 8, " ")
-		      s.Add(addressStr + "| " + value.ToString)
+		      s.Add(addressStr + "| " + JustifyLeft(value.ToString, 5, " ") + " (" + hexValue + ")")
 		    Next entry
 		  End If
 		  

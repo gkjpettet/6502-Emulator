@@ -145,8 +145,8 @@ Protected Class CPU
 		  
 		  Select Case addressMode
 		  Case AddressModes.Absolute
-		    Var lsb As UInt16 = FetchByte
-		    Return CType(FetchByte, UInt16) * 256 + lsb
+		    Var lsb As UInt8 = FetchByte
+		    Return FetchByte * 256 + lsb
 		    
 		  Case AddressModes.Immediate
 		    Return FetchByte
@@ -220,6 +220,8 @@ Protected Class CPU
 		  /// Executes `opcode` and returns the number of cycles it took.
 		  
 		  Select Case opcode
+		  Case &h20 // JSR
+		    JSR
 		    
 		  Case &h00 // BRK
 		    BRK
@@ -292,6 +294,34 @@ Protected Class CPU
 		  Return value
 		  
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub JSR()
+		  /// JSR - Jump To Subroutine
+		  ///
+		  /// Operation: PC + 2↓, [PC + 1] → PCL, [PC + 2] → PCH
+		  ///
+		  /// Transfers control of the program counter to a subroutine location but leaves a return pointer 
+		  /// on the stack to allow the user to return to perform the next instruction in the main program 
+		  /// after the subroutine is complete. To accomplish this, JSR instruction stores the program counter 
+		  /// address which points to the last byte of the jump instruc­tion onto the stack using the stack pointer.
+		  /// The stack byte contains the program count high first, followed by program count low. 
+		  /// The JSR then transfers the addresses following the jump instruction to the program counter low 
+		  /// and the program counter high, thereby directing the program to begin at that new address.
+		  ///
+		  /// The JSR instruction affects no flags, causes the stack pointer to be decremented by 2 and 
+		  /// substitutes new values into the program counter low and the program counter high.
+		  
+		  Var address As UInt16 = EffectiveAddress(AddressModes.Absolute)
+		  
+		  PushWord(PC)
+		  
+		  PC = address
+		  
+		  TotalCycles = TotalCycles + 6
+		  
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 546865204F524120696E737472756374696F6E207472616E736665727320746865206D656D6F727920616E642074686520616363756D756C61746F7220746F2074686520616464657220776869636820706572666F726D7320612062696E61727920224F5222206F6E2061206269742D62792D62697420626173697320616E642073746F7265732074686520726573756C7420696E2074686520616363756D756C61746F722E2052657475726E7320746865206E756D626572206F66206379636C65732074616B656E2E
@@ -679,6 +709,24 @@ Protected Class CPU
 	#tag Property, Flags = &h0, Description = 31362D6269742070726F6772616D20636F756E7465722E
 		PC As UInt16
 	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h0, Description = 54686520686967682062797465206F662050432E
+		#tag Getter
+			Get
+			  Return (PC And &hFF00) / 256
+			End Get
+		#tag EndGetter
+		PCH As UInt8
+	#tag EndComputedProperty
+
+	#tag ComputedProperty, Flags = &h0, Description = 546865206C6F772062797465206F662050432E
+		#tag Getter
+			Get
+			  Return PC And &hFF
+			End Get
+		#tag EndGetter
+		PCL As UInt8
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h0, Description = 382D62697420737461636B20706F696E7465722E
 		SP As UInt8

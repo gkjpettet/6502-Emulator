@@ -150,6 +150,30 @@ Inherits TestGroup
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub Opcode21Test()
+		  Run("21")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Opcode25Test()
+		  Run("25")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Opcode29Test()
+		  Run("29")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Opcode2DTest()
+		  Run("2D")
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 52756E732074686520746573747320666F722074686520737065636966696564206F70636F64652028696E20686578292E
 		Sub Run(hexOpcode As String)
 		  /// Runs the tests for the specified opcode (in hex).
@@ -168,7 +192,7 @@ Inherits TestGroup
 		    Var expected As New CPUState(test.Value("final"), test.Lookup("name", ""))
 		    SetCPUState(initial)
 		    
-		    ' if test.Value("name") = "20 55 13" then
+		    ' if test.Value("name") = "29 14 c3" then
 		    ' break
 		    ' end if
 		    

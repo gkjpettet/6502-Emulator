@@ -1,5 +1,63 @@
 #tag Class
 Protected Class CPU
+	#tag Method, Flags = &h21
+		Private Sub AND_(addressMode As MOS6502.AddressModes)
+		  /// AND - "AND" Memory with Accumulator
+		  ///
+		  /// Operation: A ∧ M → A
+		  ///
+		  /// Transfers the accumulator and memory to the adder which performs a bit-by-bit AND operation 
+		  /// and stores the result back in the accumulator.
+		  ///
+		  /// Affects the accumulator.
+		  /// Sets the zero flag if the result in the accumulator is 0, otherwise resets the zero flag.
+		  /// Sets the negative flag if the result in the accumulator has bit 7 on, otherwise resets it.
+		  
+		  // Get the data.
+		  Var data As UInt8
+		  If addressMode = AddressModes.Immediate Then
+		    data = FetchByte
+		  Else
+		    data = Memory(EffectiveAddress(addressMode))
+		  End If
+		  
+		  // Do the operation.
+		  A = A And data
+		  
+		  // Set flags.
+		  ZeroFlag = (A = 0)
+		  NegativeFlag = ((A And &h80) <> 0)
+		  
+		  // Update the cycles.
+		  Select Case addressMode
+		  Case AddressModes.Immediate
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.YIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    TotalCycles = TotalCycles + 5 + If(CrossedPageBoundary, 1, 0)
+		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 41726974686D65746963207368696674206C6566742E20536869667473206569746865722074686520616363756D756C61746F72206F72207468652061646472657373206D656D6F7279206C6F636174696F6E20312062697420746F20746865206C6566742C20776974682074686520626974203020616C77617973206265696E672073657420746F203020616E64207468652074686520696E707574206269742037206265696E672073746F72656420696E2074686520636172727920666C61672E
 		Private Sub ASL(addressMode As MOS6502.AddressModes)
 		  /// Arithmetic shift left.
@@ -148,9 +206,6 @@ Protected Class CPU
 		    Var lsb As UInt8 = FetchByte
 		    Return FetchByte * 256 + lsb
 		    
-		  Case AddressModes.Immediate
-		    Return FetchByte
-		    
 		  Case AddressModes.Relative
 		    #Pragma Warning "TODO: Figure out page boundary crossing"
 		    Var offset As Int8 = FetchByte // NB: Signed byte.
@@ -220,9 +275,6 @@ Protected Class CPU
 		  /// Executes `opcode` and returns the number of cycles it took.
 		  
 		  Select Case opcode
-		  Case &h20 // JSR
-		    JSR
-		    
 		  Case &h00 // BRK
 		    BRK
 		    
@@ -274,6 +326,21 @@ Protected Class CPU
 		    
 		  Case &h1E // ASL $nnnn,X
 		    ASL(AddressModes.XIndexedAbsolute)
+		    
+		  Case &h20 // JSR
+		    JSR
+		    
+		  Case &h21 // AND ($nn,X)
+		    AND_(AddressModes.XIndexedZeroPageIndirect)
+		    
+		  Case &h25 // AND $nn
+		    AND_(AddressModes.ZeroPage)
+		    
+		  Case &h29 // AND #$nn
+		    AND_(AddressModes.Immediate)
+		    
+		  Case &h2D // AND $nnnn
+		    AND_(AddressModes.Absolute)
 		    
 		  Else
 		    // Invalid opcode. Halt the CPU.
@@ -676,7 +743,7 @@ Protected Class CPU
 			Set
 			  If value Then
 			    P = P Or &b10000000
-			  Else 
+			  Else
 			    P = P And &b01111111
 			  End If
 			End Set
@@ -867,6 +934,78 @@ Protected Class CPU
 			Group="Behavior"
 			InitialValue="0"
 			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="BreakFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="CarryFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="DecimalFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="InterruptDisableFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="NegativeFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="OverflowFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="PCH"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="UInt8"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="PCL"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="UInt8"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="ZeroFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
 			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior

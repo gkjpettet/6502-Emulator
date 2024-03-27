@@ -119,6 +119,39 @@ Protected Class CPU
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub BIT(addressMode As MOS6502.AddressModes)
+		  /// BIT - Test Bits in Memory with Accumulator
+		  ///
+		  /// Operation: A ∧ M, M7 → N, M6 → V
+		  ///
+		  /// Performs an AND between a memory location and the accumulator but does not store the result 
+		  /// of the AND into the accumulator.
+		  ///
+		  /// Affects the N flag with N being set to the value of bit 7 of the memory being tested.
+		  /// Affects the V flag with V being set equal to bit 6 of the memory being tested
+		  /// Z is set by the result of the AND operation between the accumulator and the memory if the 
+		  /// result is Zero, Z is reset otherwise. 
+		  /// It does not affect the accumulator.
+		  
+		  // Get the data to test against.
+		  Var data As UInt8 = Memory(EffectiveAddress(addressMode))
+		  
+		  NegativeFlag = (data And &b10000000) <> 0
+		  OverflowFlag = (data And &b01000000) <> 0
+		  ZeroFlag = (A And Data) = 0
+		  
+		  // How many cycles?
+		  Select Case addressMode
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 42504C202D204272616E6368206F6E20526573756C7420506C75732E
 		Private Sub BPL()
 		  /// BPL - Branch on Result Plus.
@@ -333,11 +366,17 @@ Protected Class CPU
 		  Case &h21 // AND ($nn,X)
 		    AND_(AddressModes.XIndexedZeroPageIndirect)
 		    
+		  Case &h24 // BIT $nn
+		    BIT(AddressModes.ZeroPage)
+		    
 		  Case &h25 // AND $nn
 		    AND_(AddressModes.ZeroPage)
 		    
 		  Case &h29 // AND #$nn
 		    AND_(AddressModes.Immediate)
+		    
+		  Case &h2C // BIT $nnnn
+		    BIT(AddressModes.Absolute)
 		    
 		  Case &h2D // AND $nnnn
 		    AND_(AddressModes.Absolute)

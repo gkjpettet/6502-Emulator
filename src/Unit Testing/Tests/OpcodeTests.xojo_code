@@ -206,6 +206,12 @@ Inherits TestGroup
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub Opcode30Test()
+		  Run("30")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub Opcode31Test()
 		  Run("31")
 		End Sub

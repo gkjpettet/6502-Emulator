@@ -152,14 +152,36 @@ Protected Class CPU
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 424D49202D204272616E6368206F6E20526573756C74204D696E7573
+		Private Sub BMI()
+		  /// BMI - Branch on Result Minus
+		  ///
+		  /// Operation: Branch on N = 1
+		  /// 
+		  /// Takes the conditional branch if the N bit is set.
+		  /// Does not affect any of the flags or any other part of the machine other than the program 
+		  /// counter and then only if the N bit is on.
+		  
+		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
+		  
+		  If NegativeFlag Then
+		    PC = targetAddress
+		    TotalCycles = TotalCycles + 3 + If(CrossedPageBoundary, 1, 0)
+		  Else
+		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
+		  End If
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 42504C202D204272616E6368206F6E20526573756C7420506C75732E
 		Private Sub BPL()
 		  /// BPL - Branch on Result Plus.
 		  /// 
 		  /// Operation: Branch on N = 0
 		  ///
-		  /// This instruction is the complementary branch to branch on result minus. It's a conditional branch 
-		  /// which takes the branch when the N bit is reset (0). 
+		  /// This instruction is the complementary branch to branch on result minus. 
+		  /// It's a conditional branch which takes the branch when the N bit is reset (0). 
 		  /// BPL is used to test if the previous result bit 7 was off (0) and branch on result minus is used 
 		  /// to determine if the previous result was minus or bit 7 was on (1).
 		  ///
@@ -389,6 +411,9 @@ Protected Class CPU
 		    
 		  Case &h2E // ROL $nnnn
 		    ROL(AddressModes.Absolute)
+		    
+		  Case &h30 // BMI $nnnn
+		    BMI
 		    
 		  Case &h31 // AND ($nn),Y
 		    AND_(AddressModes.ZeroPageIndirectYIndexed)

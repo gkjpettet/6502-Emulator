@@ -363,6 +363,9 @@ Protected Class CPU
 		  Case &h20 // JSR
 		    JSR
 		    
+		  Case &h2A // ROL A
+		    ROL(AddressModes.Accumulator)
+		    
 		  Case &h21 // AND ($nn,X)
 		    AND_(AddressModes.XIndexedZeroPageIndirect)
 		    
@@ -569,6 +572,75 @@ Protected Class CPU
 		  
 		  Halted = False
 		  TotalCycles = 0
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 524F4C202D20526F74617465204C6566742E
+		Private Sub ROL(addressMode As MOS6502.AddressModes)
+		  /// ROL - Rotate Left.
+		  ///
+		  /// Operation: C ← /M7...M0/ ← C
+		  /// 
+		  /// Shifts either the accumulator or addressed memory left 1 bit, with the input carry being 
+		  /// stored in bit 0 and with the input bit 7 being stored in the carry flags.
+		  /// 
+		  /// Either shifts the accumulator left 1 bit and stores the carry in accumulator bit 0 or does 
+		  /// not affect the internal reg­isters at all. 
+		  /// Sets the carry equal to the input bit 7.
+		  /// Sets N equal to the input bit 6
+		  /// Sets the Z flag if the result of the ro­tate is 0, otherwise it resets Z
+		  /// Does not affect the overflow flag at all.
+		  
+		  // Get the data to work on.
+		  Var address As UInt16
+		  Var data As UInt16
+		  If addressMode <> Addressmodes.Accumulator Then
+		    address = EffectiveAddress(addressMode)
+		    data = Memory(address)
+		  Else
+		    data = A
+		  End If
+		  
+		  // Rotate left. Use 16-bits to track the new carry.
+		  Var result As UInt16 = ShiftLeft(data, 1)
+		  
+		  // The old carry moves into bit 0.
+		  If CarryFlag Then
+		    result = result Or &b00000001
+		  Else
+		    result = result And &b11111110
+		  End If
+		  
+		  // Set the flags.
+		  CarryFlag = (data And &b10000000) <> 0
+		  NegativeFlag = (data And &b01000000) <> 0
+		  ZeroFlag = (result = 0)
+		  
+		  // Set the result to appropriate location.
+		  If addressMode = AddressModes.Accumulator Then
+		    A = result
+		  Else
+		    Memory(address) = result
+		  End If
+		  
+		  // How many cycles?
+		  Select Case addressMode
+		  Case addressModes.Accumulator
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case addressModes.Absolute
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case addressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 7
+		    
+		  Case addressModes.ZeroPage
+		    TotalCycles = TotalCycles + 5
+		    
+		  Case addressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 6
+		  End Select
+		  
 		End Sub
 	#tag EndMethod
 

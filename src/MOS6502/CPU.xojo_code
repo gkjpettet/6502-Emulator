@@ -363,9 +363,6 @@ Protected Class CPU
 		  Case &h20 // JSR
 		    JSR
 		    
-		  Case &h2A // ROL A
-		    ROL(AddressModes.Accumulator)
-		    
 		  Case &h21 // AND ($nn,X)
 		    AND_(AddressModes.XIndexedZeroPageIndirect)
 		    
@@ -375,8 +372,14 @@ Protected Class CPU
 		  Case &h25 // AND $nn
 		    AND_(AddressModes.ZeroPage)
 		    
+		  Case &h26 //ROL $nn
+		    ROL(AddressModes.ZeroPage)
+		    
 		  Case &h29 // AND #$nn
 		    AND_(AddressModes.Immediate)
+		    
+		  Case &h2A // ROL A
+		    ROL(AddressModes.Accumulator)
 		    
 		  Case &h2C // BIT $nnnn
 		    BIT(AddressModes.Absolute)
@@ -384,17 +387,26 @@ Protected Class CPU
 		  Case &h2D // AND $nnnn
 		    AND_(AddressModes.Absolute)
 		    
+		  Case &h2E // ROL $nnnn
+		    ROL(AddressModes.Absolute)
+		    
 		  Case &h31 // AND ($nn),Y
 		    AND_(AddressModes.ZeroPageIndirectYIndexed)
 		    
 		  Case &h35 // AND $nn,X
 		    AND_(AddressModes.XIndexedZeroPage)
 		    
+		  Case &h36 // ROL $nn,X
+		    ROL(AddressModes.XIndexedZeroPage)
+		    
 		  Case &h39 // AND $nnnn,Y
 		    AND_(AddressModes.YIndexedAbsolute)
 		    
 		  Case &h3D // AND $nnnn,X
 		    AND_(AddressModes.XIndexedAbsolute)
+		    
+		  Case &h3E // ROL $nnnn,X
+		    ROL(AddressModes.XIndexedAbsolute)
 		    
 		  Else
 		    // Invalid opcode. Halt the CPU.

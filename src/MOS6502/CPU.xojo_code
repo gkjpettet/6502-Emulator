@@ -162,6 +162,28 @@ Protected Class CPU
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub BEQ()
+		  /// BEQ - Branch on Result Zero.
+		  ///
+		  /// Operation: Branch on Z = 1
+		  ///
+		  /// This instruction could also be called "Branch on Equal."
+		  /// It takes a conditional branch whenever the Z flag is on or the previ­ous result is equal to 0.
+		  /// Does not affect any of the flags or registers other than the program counter and only then 
+		  /// when the Z flag is set.
+		  
+		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
+		  
+		  If ZeroFlag Then
+		    PC = targetAddress
+		    TotalCycles = TotalCycles + 3 + If(CrossedPageBoundary, 1, 0)
+		  Else
+		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub BIT(addressMode As MOS6502.AddressModes)
 		  /// BIT - Test Bits in Memory with Accumulator
 		  ///
@@ -695,6 +717,9 @@ Protected Class CPU
 		    
 		  Case &hD0 // BNE
 		    BNE
+		    
+		  Case &hF0 // BEQ
+		    BEQ
 		    
 		  Case &hF8 // SED
 		    DecimalFlag = True

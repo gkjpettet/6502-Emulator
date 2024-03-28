@@ -596,6 +596,9 @@ Protected Class CPU
 		  Case &h60 // RTS
 		    RTS
 		    
+		  Case &h68 // PLA
+		    PLA
+		    
 		  Case &hF8 // SED
 		    DecimalFlag = True
 		    TotalCycles = TotalCycles + 2
@@ -802,6 +805,32 @@ Protected Class CPU
 		  PushByte(P)
 		  
 		  TotalCycles = TotalCycles + 3
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub PLA()
+		  /// PLA - Pull Accumulator From Stack.
+		  ///
+		  /// Adds 1 to the current value of the stack pointer and uses it to address the stack and loads 
+		  /// the contents of the stack into the A register.
+		  /// 
+		  /// Does not affect the carry or overflow flags. 
+		  /// Sets N if the bit 7 is on in accumulator A as a result of instructions, otherwise it is reset.
+		  /// If accumulator A is zero as a result of the PLA, then the Z flag is set, otherwise it is reset. 
+		  /// Changes content of the accumulator A to the contents of the memory location at stack register 
+		  /// plus 1.
+		  /// Increments the stack register.
+		  
+		  A = PopWord
+		  
+		  SP = SP - 1
+		  
+		  NegativeFlag = (A And &b10000000) <> 0
+		  ZeroFlag = (A = 0)
+		  
+		  TotalCycles = TotalCycles + 4
 		  
 		End Sub
 	#tag EndMethod

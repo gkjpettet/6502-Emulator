@@ -427,6 +427,10 @@ Protected Class CPU
 		  Case &h36 // ROL $nn,X
 		    ROL(AddressModes.XIndexedZeroPage)
 		    
+		  Case &h38 // SEC
+		    CarryFlag = True
+		    TotalCycles = TotalCycles + 2
+		    
 		  Case &h39 // AND $nnnn,Y
 		    AND_(AddressModes.YIndexedAbsolute)
 		    
@@ -441,6 +445,10 @@ Protected Class CPU
 		    
 		  Case &h60 // RTS
 		    RTS
+		    
+		  Case &hF8 // SED
+		    DecimalFlag = True
+		    TotalCycles = TotalCycles + 2
 		    
 		  Else
 		    // Invalid opcode. Halt the CPU.

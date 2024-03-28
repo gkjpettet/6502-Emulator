@@ -283,6 +283,13 @@ Protected Class CPU
 		    Var lsb As UInt8 = FetchByte
 		    Return FetchByte * 256 + lsb
 		    
+		  Case AddressModes.AbsoluteIndirect
+		    CrossedPageBoundary = False
+		    Var lsb As UInt8 = FetchByte
+		    Var fullySpecified As UInt16 = FetchByte * 256 + lsb
+		    Var effectiveLSB As UInt8 = Memory(fullySpecified)
+		    Return Memory(fullySpecified + 1) * 256 + effectiveLSB
+		    
 		  Case AddressModes.Relative
 		    #Pragma Warning "TODO: Figure out page boundary crossing"
 		    Var offset As Int8 = FetchByte // NB: Signed byte.
@@ -542,6 +549,9 @@ Protected Class CPU
 		  Case &h4A // LSR A
 		    LSR(AddressModes.Accumulator)
 		    
+		  Case &h4C // JMP $nnnn
+		    JMP(AddressModes.Absolute)
+		    
 		  Case &h4D // EOR $nnnn
 		    EOR(AddressModes.Absolute)
 		    
@@ -599,6 +609,28 @@ Protected Class CPU
 		  Return value
 		  
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 4A4D50202D204A4D5020496E6469726563742E
+		Private Sub JMP(addressMode As MOS6502.AddressModes)
+		  /// JMP - JMP Indirect.
+		  ///
+		  /// A new address is loaded into the program counter. 
+		  ///
+		  /// It affects only the program counter in the microprocessor and affects no flags in the 
+		  /// status register.
+		  
+		  PC = EffectiveAddress(addressMode)
+		  
+		  Select Case addressMode
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.AbsoluteIndirect
+		    TotalCycles = TotalCycles + 5
+		  End Select
+		  
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21

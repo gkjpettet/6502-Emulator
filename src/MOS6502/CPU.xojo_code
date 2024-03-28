@@ -443,6 +443,10 @@ Protected Class CPU
 		  Case &h40 // RTI
 		    RTI
 		    
+		  Case &h48 // PHA
+		    PushByte(A)
+		    TotalCycles = TotalCycles + 3
+		    
 		  Case &h60 // RTS
 		    RTS
 		    

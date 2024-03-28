@@ -313,6 +313,64 @@ Protected Class CPU
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 454F52202D20224578636C7573697665204F5222204D656D6F7279207769746820416363756D756C61746F722E
+		Private Sub EOR(addressMode As MOS6502.AddressModes)
+		  /// EOR - "Exclusive OR" Memory with Accumulator.
+		  ///
+		  /// Operation: A ⊻ M → A
+		  ///
+		  /// Transfers the memory and the accumulator to the adder which performs a binary "EXCLUSIVE OR" 
+		  /// on a bit-by-bit basis and stores the result in the accumulator.
+		  /// Affects the accumulator.
+		  /// Sets the zero flag if the result in the accumulator is 0, otherwise resets the zero flag.
+		  /// Sets the negative flag if the result in the accumulator has bit 7 on, otherwise resets it.
+		  
+		  // Get the data.
+		  Var data As UInt8
+		  If addressMode = AddressModes.Immediate Then
+		    data = FetchByte
+		  Else
+		    data = Memory(EffectiveAddress(addressMode))
+		  End If
+		  
+		  A = A Xor data
+		  
+		  ZeroFlag = (A = 0)
+		  
+		  NegativeFlag = (A And &b10000000) <> 0
+		  
+		  // How many cycles?
+		  Select Case addressMode
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.Immediate
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.YIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    TotalCycles = TotalCycles + 5 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Else
+		    Raise New UnsupportedOperationException("Unsupported EOR instruction.")
+		  End Select
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 457865637574657320746865206E65787420696E737472756374696F6E2E205468697320697320612073696E676C652066657463682F6465636F64652F6578656375746520737465702E
 		Sub Execute()
 		  /// Executes the next instruction. 
@@ -443,13 +501,37 @@ Protected Class CPU
 		  Case &h40 // RTI
 		    RTI
 		    
+		  Case &h41 // EOR ($nn,X)
+		    EOR(AddressModes.XIndexedZeroPageIndirect)
+		    
+		  Case &h45 // EOR $nn
+		    EOR(AddressModes.ZeroPage)
+		    
 		  Case &h48 // PHA
 		    PushByte(A)
 		    TotalCycles = TotalCycles + 3
 		    
+		  Case &h49 // EOR #$nn
+		    EOR(AddressModes.Immediate)
+		    
+		  Case &h4D // EOR $nnnn
+		    EOR(AddressModes.Absolute)
+		    
+		  Case &h51 // EOR ($nn),Y
+		    EOR(AddressModes.ZeroPageIndirectYIndexed)
+		    
+		  Case &h55 // EOR $nn,X
+		    EOR(AddressModes.XIndexedZeroPage)
+		    
 		  Case &h58 // CLI
 		    InterruptDisableFlag = False
 		    TotalCycles = TotalCycles + 2
+		    
+		  Case &h59 // EOR $nnnn,Y
+		    EOR(AddressModes.YIndexedAbsolute)
+		    
+		  Case &h5D // EOR $nnnn,X
+		    EOR(AddressModes.XIndexedAbsolute)
 		    
 		  Case &h60 // RTS
 		    RTS

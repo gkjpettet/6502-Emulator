@@ -266,14 +266,62 @@ Inherits TestGroup
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub Opcode41Test()
+		  Run("41")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Opcode45Test()
+		  Run("45")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub Opcode48Test()
 		  Run("48")
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub Opcode49Test()
+		  Run("49")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Opcode4DTest()
+		  Run("4D")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Opcode51Test()
+		  Run("51")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Opcode55Test()
+		  Run("55")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub Opcode58Test()
 		  Run("58")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Opcode59Test()
+		  Run("59")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Opcode5DTest()
+		  Run("5D")
 		End Sub
 	#tag EndMethod
 

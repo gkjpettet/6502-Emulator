@@ -507,6 +507,9 @@ Protected Class CPU
 		  Case &h45 // EOR $nn
 		    EOR(AddressModes.ZeroPage)
 		    
+		  Case &h46 // LSR $nn
+		    LSR(AddressModes.ZeroPage)
+		    
 		  Case &h48 // PHA
 		    PushByte(A)
 		    TotalCycles = TotalCycles + 3
@@ -514,14 +517,23 @@ Protected Class CPU
 		  Case &h49 // EOR #$nn
 		    EOR(AddressModes.Immediate)
 		    
+		  Case &h4A // LSR A
+		    LSR(AddressModes.Accumulator)
+		    
 		  Case &h4D // EOR $nnnn
 		    EOR(AddressModes.Absolute)
+		    
+		  Case &h4E // LSR $nnnn
+		    LSR(AddressModes.Absolute)
 		    
 		  Case &h51 // EOR ($nn),Y
 		    EOR(AddressModes.ZeroPageIndirectYIndexed)
 		    
 		  Case &h55 // EOR $nn,X
 		    EOR(AddressModes.XIndexedZeroPage)
+		    
+		  Case &h56 // LSR $nn,X
+		    LSR(AddressModes.XIndexedZeroPage)
 		    
 		  Case &h58 // CLI
 		    InterruptDisableFlag = False
@@ -532,6 +544,9 @@ Protected Class CPU
 		    
 		  Case &h5D // EOR $nnnn,X
 		    EOR(AddressModes.XIndexedAbsolute)
+		    
+		  Case &h5E // LSR $nnnn,X
+		    LSR(AddressModes.XIndexedAbsolute)
 		    
 		  Case &h60 // RTS
 		    RTS
@@ -585,6 +600,65 @@ Protected Class CPU
 		  PC = address
 		  
 		  TotalCycles = TotalCycles + 6
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 4C5352202D204C6F676963616C2053686966742052696768742E
+		Private Sub LSR(addressMode As MOS6502.AddressModes)
+		  /// LSR - Logical Shift Right.
+		  ///
+		  /// Shift the specified contents (accumulator or memory) right by one bit position. A "0" is 
+		  /// forced in bit 7. bit 0 is transferred to the carry. The shifted data is deposited in the 
+		  /// source (i.e. either the accumulator or memory).
+		  ///
+		  /// Does not affect the overflow flag. 
+		  /// The N flag is always reset. 
+		  /// The Z flag is set if the result of the shift is 0 and reset otherwise. 
+		  /// The carry is set equal to bit 0 of the input.
+		  
+		  // Get the data to work on.
+		  Var address As UInt16
+		  Var data As UInt8
+		  If addressMode <> Addressmodes.Accumulator Then
+		    address = EffectiveAddress(addressMode)
+		    data = Memory(address)
+		  Else
+		    data = A
+		  End If
+		  
+		  // Compute the result.
+		  Var result As UInt8 = ShiftRight(data, 1)
+		  
+		  // Store the result back where it came from.
+		  If addressMode = AddressModes.Accumulator Then
+		    A = result
+		  Else
+		    Memory(address) = result
+		  End If
+		  
+		  // Set the flags.
+		  NegativeFlag = False
+		  ZeroFlag = (result = 0)
+		  CarryFlag = (data And &b00000001) <> 0
+		  
+		  // How many cycles?
+		  Select Case addressMode
+		  Case AddressModes.Accumulator
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 7
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 5
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 6
+		  End Select
 		  
 		End Sub
 	#tag EndMethod

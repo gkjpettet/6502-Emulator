@@ -447,6 +447,10 @@ Protected Class CPU
 		    PushByte(A)
 		    TotalCycles = TotalCycles + 3
 		    
+		  Case &h58 // CLI
+		    InterruptDisableFlag = False
+		    TotalCycles = TotalCycles + 2
+		    
 		  Case &h60 // RTS
 		    RTS
 		    

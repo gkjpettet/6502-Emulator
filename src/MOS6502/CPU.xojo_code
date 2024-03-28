@@ -284,11 +284,18 @@ Protected Class CPU
 		    Return FetchByte * 256 + lsb
 		    
 		  Case AddressModes.AbsoluteIndirect
-		    CrossedPageBoundary = False
+		    // Only used by the JMP opcode.
 		    Var lsb As UInt8 = FetchByte
 		    Var fullySpecified As UInt16 = FetchByte * 256 + lsb
 		    Var effectiveLSB As UInt8 = Memory(fullySpecified)
-		    Return Memory(fullySpecified + 1) * 256 + effectiveLSB
+		    
+		    // The indirect jump instruction does not increment the page address when the indirect 
+		    // pointer crosses a page boundary. JMP ($xxFF) will fetch the address from $xxFF and $xx00.
+		    If lsb = 255 Then
+		      Return Memory(fullySpecified - 255) * 256 + effectiveLSB
+		    Else
+		      Return Memory(fullySpecified + 1) * 256 + effectiveLSB
+		    End If
 		    
 		  Case AddressModes.Relative
 		    #Pragma Warning "TODO: Figure out page boundary crossing"
@@ -417,6 +424,9 @@ Protected Class CPU
 		  /// Executes `opcode` and returns the number of cycles it took.
 		  
 		  Select Case opcode
+		  Case &h6C // JMP ($nnnn)
+		    JMP(AddressModes.AbsoluteIndirect)
+		    
 		  Case &h00 // BRK
 		    BRK
 		    

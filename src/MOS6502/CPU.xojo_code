@@ -1,5 +1,109 @@
 #tag Class
 Protected Class CPU
+	#tag Method, Flags = &h21, Description = 414443202D20416464204D656D6F727920746F20416363756D756C61746F7220776974682043617272792E
+		Private Sub ADC(addressMode As MOS6502.AddressModes)
+		  /// ADC - Add Memory to Accumulator with Carry.
+		  ///
+		  /// Operation: A + M + C → A, C
+		  ///
+		  /// Adds the value of memory and carry from the previous operation to the value of the accumulator 
+		  /// and stores the result in the accumulator.
+		  ///
+		  /// Affects the accumulator.
+		  /// Sets the carry flag when the sum of a binary add exceeds 255 or when the sum of a decimal 
+		  /// add exceeds 99, otherwise carry is reset. 
+		  /// The overflow flag is set when the sign or bit 7 is changed due to the result 
+		  /// exceeding +127 or -128, otherwise overflow is reset. 
+		  /// The negative flag is set if the accumulator result contains bit 7 on, otherwise the 
+		  /// negative flag is reset. 
+		  /// The zero flag is set if the accumulator result is 0, otherwise the zero flag is reset.
+		  
+		  Var operand As UInt8 = Memory(EffectiveAddress(addressMode))
+		  
+		  If DecimalFlag Then
+		    // https://github.com/mnaberez/py65/blob/main/py65/devices/mpu6502.py#L317
+		    
+		    Var halfcarry, decimalcarry, adjust0, adjust1 As Integer = 0
+		    Var nibble0 As Integer = (operand And &hf) + (A And &hf) + (P And 1)
+		    
+		    If nibble0 > 9 Then
+		      adjust0 = 6
+		      halfcarry = 1
+		    End If
+		    
+		    Var nibble1 As Integer = (ShiftRight(operand, 4) And &hf) + (ShiftRight(A, 4) And &hf) + halfcarry
+		    
+		    If nibble1 > 9 Then
+		      adjust1 = 6
+		      decimalcarry = 1
+		    End If
+		    
+		    // The ALU outputs are not decimally adjusted.
+		    nibble0 = nibble0 And &hf
+		    nibble1 = nibble1 And &hf
+		    Var aluresult As Integer = ShiftLeft(nibble1, 4) + nibble0
+		    
+		    // The final A contents will be decimally adjusted.
+		    nibble0 = (nibble0 + adjust0) And &hf
+		    nibble1 = (nibble1 + adjust1) And &hf
+		    P = P And Not(1 Or 64 Or 128 Or 2)
+		    If aluresult = 0 Then
+		      P = P Or 2
+		    Else
+		      P = P Or aluresult And 128
+		    End If
+		    
+		    If decimalcarry = 1 Then
+		      P = P Or 1
+		    End If
+		    
+		    If ((Not(A Xor operand) And (A Xor aluresult)) And 128) <> 0 Then
+		      p = P Or 64
+		    End If
+		    
+		    A = ShiftLeft(nibble1, 4) + nibble0
+		    
+		  Else
+		    // https://github.com/sethm/symon/blob/master/src/main/java/com/loomcom/symon/Cpu.java#L1311
+		    
+		    Var result As Integer = (operand And &hff) + (A And &hff) + If(CarryFlag, 1, 0)
+		    Var carry6 As Integer = (operand And &h7f) + (A And &h7f) + If(CarryFlag, 1, 0)
+		    CarryFlag = (result And &h100) <> 0
+		    OverflowFlag = CarryFlag Xor ((carry6 And &h80) <> 0)
+		    A = result And &hff
+		    SetArithmeticFlags(A)
+		  End If
+		  
+		  // How many cycles?
+		  Select Case addressMode
+		  Case AddressModes.Immediate
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.YIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    TotalCycles = TotalCycles + 5 + If(CrossedPageBoundary, 1, 0)
+		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Sub AND_(addressMode As MOS6502.AddressModes)
 		  /// AND - "AND" Memory with Accumulator
@@ -531,8 +635,8 @@ Protected Class CPU
 		  /// Executes `opcode` and returns the number of cycles it took.
 		  
 		  Select Case opcode
-		  Case &h6C // JMP ($nnnn)
-		    JMP(AddressModes.AbsoluteIndirect)
+		  Case &h61 // ADC ($nn,X)
+		    ADC(AddressModes.XIndexedZeroPageIndirect)
 		    
 		  Case &h00 // BRK
 		    BRK
@@ -705,6 +809,9 @@ Protected Class CPU
 		    
 		  Case &h68 // PLA
 		    PLA
+		    
+		  Case &h6C // JMP ($nnnn)
+		    JMP(AddressModes.AbsoluteIndirect)
 		    
 		  Case &h70 // BVS
 		    BVS
@@ -1171,6 +1278,15 @@ Protected Class CPU
 		  
 		  TotalCycles = TotalCycles + 6
 		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 5365747320746865207A65726F20616E64206E6567617469766520666C616773206F662074686520737461747573207265676973746572206261736564206F6E206120726567697374657227732076616C75652E
+		Private Sub SetArithmeticFlags(registerValue As UInt8)
+		  /// Sets the zero and negative flags of the status register based on a register's value.
+		  
+		  ZeroFlag = (registerValue = 0)
+		  NegativeFlag = (registerValue And &h80) <> 0
 		End Sub
 	#tag EndMethod
 

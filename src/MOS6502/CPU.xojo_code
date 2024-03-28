@@ -397,6 +397,9 @@ Protected Class CPU
 		  Case &h26 //ROL $nn
 		    ROL(AddressModes.ZeroPage)
 		    
+		  Case &h28 // PLP
+		    PLP
+		    
 		  Case &h29 // AND #$nn
 		    AND_(AddressModes.Immediate)
 		    
@@ -560,6 +563,25 @@ Protected Class CPU
 		  PushByte(P)
 		  
 		  TotalCycles = TotalCycles + 3
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 504C50202D2050756C6C2050726F636573736F72205374617475732046726F6D20537461636B2E
+		Private Sub PLP()
+		  /// PLP - Pull Processor Status From Stack.
+		  ///
+		  /// Operation: P↑
+		  ///
+		  /// Transfers the next value on the stack to the Proces­sor Status register, thereby changing all 
+		  /// of the flags and setting the mode switches to the values from the stack.
+		  
+		  P = PopByte
+		  
+		  BreakFlag = False
+		  SetStatusBit5
+		  
+		  TotalCycles = TotalCycles + 4
 		  
 		End Sub
 	#tag EndMethod
@@ -730,7 +752,7 @@ Protected Class CPU
 		  /// Re-initializes all flags to the position to the point they were at the time the interrupt 
 		  /// was taken and sets the program counter back to its pre-interrupt state. 
 		  /// It affects no other registers in the microprocessor.
-		   
+		  
 		  P = PopByte
 		  
 		  // Clear the break flag and ensure bit 5 is set.

@@ -8,7 +8,7 @@ Inherits TestController
 		  Var group As TestGroup
 		  
 		  group = New OpcodeTests(Self, "Opcodes", True)
-		  'group = New ADCTests(Self, "ADC", True)
+		  'group = New TempTests(Self, "Temp", True)
 		End Sub
 	#tag EndEvent
 

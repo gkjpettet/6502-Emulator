@@ -18,7 +18,13 @@ Protected Class CPU
 		  /// negative flag is reset. 
 		  /// The zero flag is set if the accumulator result is 0, otherwise the zero flag is reset.
 		  
-		  Var operand As UInt8 = Memory(EffectiveAddress(addressMode))
+		  // Get the operand.
+		  Var operand As UInt8
+		  If addressMode = AddressModes.Immediate Then
+		    operand = FetchByte
+		  Else
+		    operand = Memory(EffectiveAddress(addressMode))
+		  End If
 		  
 		  If DecimalFlag Then
 		    // https://github.com/mnaberez/py65/blob/main/py65/devices/mpu6502.py#L317
@@ -635,9 +641,6 @@ Protected Class CPU
 		  /// Executes `opcode` and returns the number of cycles it took.
 		  
 		  Select Case opcode
-		  Case &h61 // ADC ($nn,X)
-		    ADC(AddressModes.XIndexedZeroPageIndirect)
-		    
 		  Case &h00 // BRK
 		    BRK
 		    
@@ -807,14 +810,38 @@ Protected Class CPU
 		  Case &h60 // RTS
 		    RTS
 		    
+		  Case &h61 // ADC ($nn,X)
+		    ADC(AddressModes.XIndexedZeroPageIndirect)
+		    
+		  Case &h65 // ADC $nn
+		    ADC(AddressModes.ZeroPage)
+		    
 		  Case &h68 // PLA
 		    PLA
+		    
+		  Case &h69 // ADC #$nn
+		    ADC(AddressModes.Immediate)
 		    
 		  Case &h6C // JMP ($nnnn)
 		    JMP(AddressModes.AbsoluteIndirect)
 		    
+		  Case &h6D // ADC $nnnn
+		    ADC(AddressModes.Absolute)
+		    
 		  Case &h70 // BVS
 		    BVS
+		    
+		  Case &h71 // ADC ($nn),Y
+		    ADC(AddressModes.ZeroPageIndirectYIndexed)
+		    
+		  Case &h75 // ADC $nn,X
+		    ADC(AddressModes.XIndexedZeroPage)
+		    
+		  Case &h7D // ADC $nnnn,X
+		    ADC(AddressModes.XIndexedAbsolute)
+		    
+		  Case &h79 //ADC $nnnn,Y
+		    ADC(AddressModes.YIndexedAbsolute)
 		    
 		  Case &h90 // BCC
 		    BCC

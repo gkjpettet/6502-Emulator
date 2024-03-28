@@ -433,6 +433,12 @@ Protected Class CPU
 		  Case &h3E // ROL $nnnn,X
 		    ROL(AddressModes.XIndexedAbsolute)
 		    
+		  Case &h40 // RTI
+		    RTI
+		    
+		  Case &h60 // RTS
+		    RTS
+		    
 		  Else
 		    // Invalid opcode. Halt the CPU.
 		    Halted = True
@@ -558,6 +564,34 @@ Protected Class CPU
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 506F707320612073696E676C6520627974652066726F6D20746865206D656D6F7279206C6F636174696F6E20706F696E74656420746F2062792074686520737461636B20706F696E746572202853502920616E64207468656E20696E6372656D656E74732074686520737461636B20706F696E7465722E
+		Private Function PopByte() As UInt8
+		  /// Pops a single byte from the memory location pointed to by the stack pointer (SP) 
+		  /// and then increments the stack pointer.
+		  
+		  SP = SP + 1
+		  
+		  Var value As UInt8 = Memory.Read(&h0100 + SP)
+		  
+		  Return value
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function PopWord() As UInt16
+		  /// Pops a 16-bit word off the stack.
+		  ///
+		  /// First pops the low byte then the high byte. This is because the 6502 stack grows downwards
+		  /// and the values are stored in little-endian order.
+		  
+		  Var low As UInt8 = PopByte
+		  Var high As UInt8 = PopByte
+		  
+		  Return (high * 256) + low
+		  
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 50757368657320612073696E676C65206279746520746F20746865206D656D6F7279206C6F636174696F6E20706F696E74656420746F2062792074686520737461636B20706F696E746572202853502920616E64207468656E2064656372656D656E74732074686520737461636B20706F696E7465722E
 		Private Sub PushByte(value As UInt8)
 		  /// Pushes a single byte to the memory location pointed to by the stack pointer (SP) 
@@ -678,6 +712,61 @@ Protected Class CPU
 		    TotalCycles = TotalCycles + 6
 		  End Select
 		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 525449202D2052657475726E2046726F6D20496E74657272757074
+		Private Sub RTI()
+		  /// RTI - Return From Interrupt
+		  /// 
+		  /// Operation: P↑ PC↑
+		  ///
+		  /// Transfers from the stack into the microprocessor the processor status and the program counter 
+		  /// location for the instruction which was interrupted. By virtue of the interrupt having
+		  /// stored this data before executing the instruction and the fact that the RTI re-initialises
+		  /// the microprocessor to the same state as when it was interrupted, the combination of 
+		  /// interrupt plus RTI allows truly re-entrant coding.
+		  ///
+		  /// Re-initializes all flags to the position to the point they were at the time the interrupt 
+		  /// was taken and sets the program counter back to its pre-interrupt state. 
+		  /// It affects no other registers in the microprocessor.
+		   
+		  P = PopByte
+		  
+		  // Clear the break flag and ensure bit 5 is set.
+		  BreakFlag = False
+		  SetStatusBit5
+		  
+		  PC = PopWord
+		  
+		  TotalCycles = TotalCycles + 6
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 525453202D2052657475726E2046726F6D20537562726F75746D65
+		Private Sub RTS()
+		  /// RTS - Return From Subroutme
+		  ///
+		  /// Operation: PC↑, PC + 1 → PC
+		  /// Restore the program counter from the stack and increment it by one. Adjust the stack pointer.
+		  /// The RTS instruction does not affect any flags and affects only PCL and PCH.
+		  
+		  Var pcl As UInt8 = PopByte
+		  Var pch As UInt8 = PopByte
+		  
+		  PC = (pch * 256) + pcl + 1
+		  
+		  TotalCycles = TotalCycles + 6
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 536574732074686520756E7573656420626974203520696E20746865207374617475732072656769737465722E
+		Private Sub SetStatusBit5()
+		  /// Sets the unused bit 5 in the status register.
+		  
+		  P = P Or &b00100000
 		End Sub
 	#tag EndMethod
 

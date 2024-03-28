@@ -834,11 +834,11 @@ Protected Class Assert
 		  If cpu.A <> expectedState.A Then
 		    FailCustom(initialState, expectedState, cpu, "Incorrect accumulator value.")
 		    
-		  ElseIf cpu.P <> expectedState.P Then
-		    FailCustom(initialState, expectedState, cpu, "Incorrect status register.")
-		    
 		  ElseIf cpu.PC <> expectedState.PC Then
 		    FailCustom(initialState, expectedState, cpu, "Incorrect PC.")
+		    
+		  ElseIf cpu.P <> expectedState.P Then
+		    FailCustom(initialState, expectedState, cpu, "Incorrect status register.")
 		    
 		  ElseIf cpu.SP <> expectedState.SP Then
 		    FailCustom(initialState, expectedState, cpu, "Incorrect stack pointer.")

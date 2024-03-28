@@ -90,6 +90,11 @@ Protected Class CPUState
 		  s.Add("A:  " + Self.A.ToString)
 		  s.Add("P:  " + Self.P.ToString)
 		  s.Add("PC: " + Self.PC.ToString + " (" + Self.PC.ToHex(4) + ")")
+		  
+		  Var actualSP As UInt16 = &h0100 + Self.SP
+		  s.Add("SP: " + Self.SP.ToString + " (Address: " + actualSP.ToString + ")")
+		  
+		  
 		  s.Add("X:  " + Self.X.ToString)
 		  s.Add("Y:  " + Self.Y.ToString)
 		  
@@ -103,7 +108,8 @@ Protected Class CPUState
 		  Var I As String = If(InterruptDisableFlag, "1 ", "0 ")
 		  Var Z As String = If(ZeroFlag, "1 ", "0 ")
 		  Var C As String = If(CarryFlag, "1 ", "0 ")
-		  s.Add(N + V + "- " + B + D + I + Z + C)
+		  Var bit5 As String = If(StatusBit5, "1 ", "0 ")
+		  s.Add(N + V + bit5 + B + D + I + Z + C)
 		  s.Add("")
 		  
 		  If Self.Memory.KeyCount > 0 Then
@@ -219,7 +225,7 @@ Protected Class CPUState
 			Set
 			  If value Then
 			    P = P Or &b10000000
-			  Else 
+			  Else
 			    P = P And &b01111111
 			  End If
 			End Set
@@ -256,6 +262,15 @@ Protected Class CPUState
 	#tag Property, Flags = &h0, Description = 382D62697420737461636B20706F696E7465722E
 		SP As UInt8
 	#tag EndProperty
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  Return (P And &b00100000) <> 0
+			End Get
+		#tag EndGetter
+		StatusBit5 As Boolean
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h0, Description = 54686520756E697175652074657374206E616D652E
 		TestName As String
@@ -376,6 +391,70 @@ Protected Class CPUState
 			Group="Behavior"
 			InitialValue=""
 			Type="UInt8"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="BreakFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="CarryFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="DecimalFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="InterruptDisableFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="NegativeFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="OverflowFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="TestName"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="String"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="ZeroFlag"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
 			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior

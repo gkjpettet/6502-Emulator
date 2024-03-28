@@ -243,6 +243,27 @@ Protected Class CPU
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub BVS()
+		  /// BVS - Branch on Overflow Set.
+		  ///
+		  /// Operation: Branch on V = 1
+		  ///
+		  /// Tests the V flag and takes the conditional branch if V is on.
+		  /// Does not affect any flags or registers other than the program counter and only when the 
+		  /// overflow flag is set.
+		  
+		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
+		  
+		  If OverflowFlag Then
+		    PC = targetAddress
+		    TotalCycles = TotalCycles + 3 + If(CrossedPageBoundary, 1, 0)
+		  Else
+		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
+		  End If
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Function Clone() As MOS6502.CPU
 		  /// Returns a clone of this CPU. Mostly used for debugging whilst testing.
@@ -598,6 +619,9 @@ Protected Class CPU
 		    
 		  Case &h68 // PLA
 		    PLA
+		    
+		  Case &h70 // BVS
+		    BVS
 		    
 		  Case &hF8 // SED
 		    DecimalFlag = True

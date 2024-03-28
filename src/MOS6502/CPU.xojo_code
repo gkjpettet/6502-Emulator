@@ -216,6 +216,28 @@ Protected Class CPU
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub BNE()
+		  /// BNE - Branch on Result Not Zero.
+		  ///
+		  /// Operation: Branch on Z = 0
+		  ///
+		  /// This instruction could also be called "Branch on Not Equal." It tests the Z flag and takes 
+		  /// the conditional branch if the Z flag is not on, indicating that the previous result was not zero.
+		  /// Does not affect any of the flags or registers other than the program counter and only then 
+		  /// if the Z flag is reset.
+		  
+		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
+		  
+		  If Not ZeroFlag Then
+		    PC = targetAddress
+		    TotalCycles = TotalCycles + 3 + If(CrossedPageBoundary, 1, 0)
+		  Else
+		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
+		  End If
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 42504C202D204272616E6368206F6E20526573756C7420506C75732E
 		Private Sub BPL()
 		  /// BPL - Branch on Result Plus.
@@ -670,6 +692,9 @@ Protected Class CPU
 		    
 		  Case &hB0 // BCS
 		    BCS
+		    
+		  Case &hD0 // BNE
+		    BNE
 		    
 		  Case &hF8 // SED
 		    DecimalFlag = True

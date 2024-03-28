@@ -120,6 +120,27 @@ Protected Class CPU
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub BCC()
+		  /// BCC - Branch on Carry Clear.
+		  ///
+		  /// Operation: Branch on C = 0
+		  /// 
+		  /// Tests the state of the carry bit and takes a conditional branch if the carry bit is reset.
+		  /// Affects no flags or registers other than the program counter and then only if the C flag 
+		  /// is not on.
+		  
+		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
+		  
+		  If Not CarryFlag Then
+		    PC = targetAddress
+		    TotalCycles = TotalCycles + 3 + If(CrossedPageBoundary, 1, 0)
+		  Else
+		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub BIT(addressMode As MOS6502.AddressModes)
 		  /// BIT - Test Bits in Memory with Accumulator
 		  ///
@@ -622,6 +643,9 @@ Protected Class CPU
 		    
 		  Case &h70 // BVS
 		    BVS
+		    
+		  Case &h90 // BCC
+		    BCC
 		    
 		  Case &hF8 // SED
 		    DecimalFlag = True

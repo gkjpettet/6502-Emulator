@@ -52,7 +52,7 @@ Protected Class CPU
 		    // The final A contents will be decimally adjusted.
 		    nibble0 = (nibble0 + adjust0) And &hf
 		    nibble1 = (nibble1 + adjust1) And &hf
-		    P = P And Not(1 Or 64 Or 128 Or 2)
+		    P = P And -196 // -196 = Not(CARRY Or OVERFLOW Or NEGATIVE Or ZERO)
 		    If aluresult = 0 Then
 		      P = P Or 2
 		    Else
@@ -855,12 +855,33 @@ Protected Class CPU
 		  Case &hE1 // SBC ($nn,X)
 		    SBC(AddressModes.XIndexedZeroPageIndirect)
 		    
+		  Case &hE5 // SBC $nn
+		    SBC(AddressModes.ZeroPage)
+		    
+		  Case &hE9 // SBC #$nn
+		    SBC(AddressModes.Immediate)
+		    
+		  Case &hED // SBC $nnnn
+		    SBC(AddressModes.Absolute)
+		    
 		  Case &hF0 // BEQ
 		    BEQ
+		    
+		  Case &hF1 // SBC ($nn),Y
+		    SBC(AddressModes.ZeroPageIndirectYIndexed)
+		    
+		  Case &hF5 // SBC $nn,X
+		    SBC(AddressModes.XIndexedZeroPage)
 		    
 		  Case &hF8 // SED
 		    DecimalFlag = True
 		    TotalCycles = TotalCycles + 2
+		    
+		  Case &hF9 // SBC $nnnn,Y
+		    SBC(AddressModes.YIndexedAbsolute)
+		    
+		  Case &hFD // SBC $nnnn,X
+		    SBC(AddressModes.XIndexedAbsolute)
 		    
 		  Else
 		    // Invalid opcode. Halt the CPU.
@@ -1313,6 +1334,117 @@ Protected Class CPU
 
 	#tag Method, Flags = &h21, Description = 534243202D205375627472616374204D656D6F72792066726F6D20416363756D756C61746F72207769746820426F72726F772E
 		Private Sub SBC(addressMode As MOS6502.AddressModes)
+		  /// SBC - Subtract Memory from Accumulator with Borrow.
+		  ///
+		  /// Operation: A - M - ~C → A
+		  ///
+		  /// Subtracts the value of memory and borrow from the value of the accumulator, using two's 
+		  /// complement arithmetic, and stores the result in the accumulator. 
+		  /// Borrow is defined as the carry flag complemented; therefore, a resultant carry flag 
+		  /// indicates that a borrow has not occurred.
+		  ///
+		  /// Affects the accumulator.
+		  /// The carry flag is set if the result is greater than or equal to 0. The carry flag is 
+		  /// reset when the result is less than 0, indicating a borrow. 
+		  /// The over­flow flag is set when the result exceeds +127 or -127, otherwise it is reset. 
+		  /// The negative flag is set if the result in the accumulator has bit 7 on, otherwise it is reset.
+		  /// The Z flag is set if the result in the accumulator is 0, otherwise it is reset.
+		  
+		  // Get the operand.
+		  Var operand As UInt8
+		  If addressMode = AddressModes.Immediate Then
+		    operand = FetchByte
+		  Else
+		    operand = Memory(EffectiveAddress(addressMode))
+		  End If
+		  
+		  If DecimalFlag Then
+		    
+		    Var halfcarry As Integer = 1
+		    Var decimalcarry, adjust0, adjust1 As Integer = 0
+		    Var nibble0 As Integer = (A And &hf) + ((Not operand) And &hf) + (P And 1)
+		    
+		    If nibble0 <= &hf Then
+		      halfcarry = 0
+		      adjust0 = 10
+		    End If
+		    
+		    Var nibble1 As Integer = (ShiftRight(A, 4) And &hf) + (ShiftRight((Not operand), 4) And &hf) + halfcarry
+		    
+		    If nibble1 <= &hf Then adjust1 = ShiftLeft(10, 4)
+		    
+		    // The ALU outputs are not decimally adjusted.
+		    Const BYTE_MASK = 255
+		    Var aluresult as Integer = A + ((Not operand) And BYTE_MASK) + (P And 1)
+		    
+		    If aluresult > BYTE_MASK Then decimalcarry = 1
+		    
+		    aluresult = aluresult And BYTE_MASK
+		    
+		    // The final result will be adjusted.
+		    nibble0 = (aluresult + adjust0) And &hf
+		    nibble1 = ShiftRight((aluresult + adjust1), 4) And &hf
+		    
+		    P = P And -196 // -196 = Not(CARRY Or ZERO Or NEGATIVE Or OVERFLOW)
+		    
+		    If aluresult = 0 Then
+		      P = P Or 2
+		    Else
+		      P = P Or (aluresult And 128)
+		    End If
+		    
+		    If decimalcarry = 1 Then P = P Or 1
+		    
+		    If (((A Xor operand) And (A Xor aluresult)) And 128) <> 0 Then
+		      P = P Or 64
+		    End If
+		    
+		    A = ShiftLeft(nibble1, 4) + nibble0
+		    
+		  Else
+		    
+		    operand = Not operand
+		    Var result As Integer = (operand And &hff) + (A And &hff) + If(CarryFlag, 1, 0)
+		    Var carry6 As Integer = (operand And &h7f) + (A And &h7f) + If(CarryFlag, 1, 0)
+		    CarryFlag = (result And &h100) <> 0
+		    OverflowFlag = CarryFlag Xor ((carry6 And &h80) <> 0)
+		    A = result And &hff
+		    SetArithmeticFlags(A)
+		    
+		  End If
+		  
+		  // How many cycles?
+		  Select Case addressMode
+		  Case AddressModes.Immediate
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.YIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    TotalCycles = TotalCycles + 5 + If(CrossedPageBoundary, 1, 0)
+		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 534243202D205375627472616374204D656D6F72792066726F6D20416363756D756C61746F72207769746820426F72726F772E
+		Private Sub SBC_Working_Old(addressMode As MOS6502.AddressModes)
 		  /// SBC - Subtract Memory from Accumulator with Borrow.
 		  ///
 		  /// Operation: A - M - ~C → A

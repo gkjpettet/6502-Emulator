@@ -45,6 +45,48 @@ Inherits TestGroup
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub OpcodeE5Test()
+		  Run("E5")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub OpcodeE9Test()
+		  Run("E9")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub OpcodeEDTest()
+		  Run("ED")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub OpcodeF1Test()
+		  Run("F1")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub OpcodeF5Test()
+		  Run("F5")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub OpcodeF9Test()
+		  Run("F9")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub OpcodeFDTest()
+		  Run("FD")
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0, Description = 52756E732074686520746573747320666F722074686520737065636966696564206F70636F64652028696E20686578292E
 		Sub Run(hexOpcode As String)
 		  /// Runs the tests for the specified opcode (in hex).

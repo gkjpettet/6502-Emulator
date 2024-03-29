@@ -960,6 +960,9 @@ Protected Class CPU
 		  Case &hE9 // SBC #$nn
 		    SBC(AddressModes.Immediate)
 		    
+		  Case &hEA // NOP
+		    TotalCycles = TotalCycles + 2
+		    
 		  Case &hED // SBC $nnnn
 		    SBC(AddressModes.Absolute)
 		    

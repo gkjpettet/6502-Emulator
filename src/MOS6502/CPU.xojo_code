@@ -858,11 +858,29 @@ Protected Class CPU
 		  Case &h79 //ADC $nnnn,Y
 		    ADC(AddressModes.YIndexedAbsolute)
 		    
+		  Case &h81 // STA ($nn,X)
+		    STA(AddressModes.XIndexedZeroPageIndirect)
+		    
+		  Case &h85 // STA $nn
+		    STA(AddressModes.ZeroPage)
+		    
 		  Case &h8D // STA $nnnn
 		    STA(AddressModes.Absolute)
 		    
 		  Case &h90 // BCC
 		    BCC
+		    
+		  Case &h91 // STA ($nn),Y
+		    STA(AddressModes.ZeroPageIndirectYIndexed)
+		    
+		  Case &h95 // STA $nn,X
+		    STA(AddressModes.XIndexedZeroPage)
+		    
+		  Case &h99 // STA $nnnn,Y
+		    STA(AddressModes.YIndexedAbsolute)
+		    
+		  Case &h9D // STA $nnnn,X
+		    STA(AddressModes.XIndexedAbsolute)
 		    
 		  Case &hB0 // BCS
 		    BCS

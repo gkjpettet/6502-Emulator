@@ -855,6 +855,10 @@ Protected Class CPU
 		  Case &h7E // ROR $nnnn,X
 		    ROR(AddressModes.XIndexedAbsolute)
 		    
+		  Case &h78 // SEI
+		    InterruptDisableFlag = True
+		    TotalCycles = TotalCycles + 2
+		    
 		  Case &h79 //ADC $nnnn,Y
 		    ADC(AddressModes.YIndexedAbsolute)
 		    

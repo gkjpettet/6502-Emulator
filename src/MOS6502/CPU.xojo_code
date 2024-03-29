@@ -897,6 +897,9 @@ Protected Class CPU
 		  Case &h88 // DEY
 		    DEY
 		    
+		  Case &h8A // TXA
+		    TXA
+		    
 		  Case &h8D // STA $nnnn
 		    STA(AddressModes.Absolute)
 		    
@@ -1638,6 +1641,31 @@ Protected Class CPU
 		  Case AddressModes.ZeroPageIndirectYIndexed
 		    TotalCycles = TotalCycles + 6
 		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 545841202D205472616E7366657220496E646578205820546F20416363756D756C61746F722E
+		Private Sub TXA()
+		  /// TXA - Transfer Index X To Accumulator.
+		  ///
+		  /// Operation: X → A
+		  ///
+		  /// Moves the value that is in the index register X to the accumulator without disturbing the 
+		  /// content of the index register X.
+		  ///
+		  /// Does not affect any register other than the accumula­tor and does not affect the carry or 
+		  /// overflow flag. 
+		  /// If the result in A has bit 7 on, then the N flag is set, otherwise it is reset. 
+		  /// If the resultant value in the accumulator is 0, then the Z flag is set, other­ wise it's reset.
+		  
+		  A = X
+		  
+		  NegativeFlag = (A And &b10000000) <> 0
+		  
+		  ZeroFlag = (A = 0)
+		  
+		  TotalCycles = TotalCycles + 2
 		  
 		End Sub
 	#tag EndMethod

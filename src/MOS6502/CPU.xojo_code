@@ -915,6 +915,10 @@ Protected Class CPU
 		  Case &h99 // STA $nnnn,Y
 		    STA(AddressModes.YIndexedAbsolute)
 		    
+		  Case &h9A // TXS
+		    SP = X
+		    TotalCycles = TotalCycles + 2
+		    
 		  Case &h9D // STA $nnnn,X
 		    STA(AddressModes.XIndexedAbsolute)
 		    

@@ -858,6 +858,9 @@ Protected Class CPU
 		  Case &h79 //ADC $nnnn,Y
 		    ADC(AddressModes.YIndexedAbsolute)
 		    
+		  Case &h8D // STA $nnnn
+		    STA(AddressModes.Absolute)
+		    
 		  Case &h90 // BCC
 		    BCC
 		    
@@ -1541,6 +1544,43 @@ Protected Class CPU
 		  /// Sets the unused bit 5 in the status register.
 		  
 		  P = P Or &b00100000
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 535441202D2053746F726520416363756D756C61746F7220696E204D656D6F72792E
+		Private Sub STA(addressMode As MOS6502.AddressModes)
+		  /// STA - Store Accumulator in Memory.
+		  ///
+		  /// Operation: A → M
+		  ///
+		  /// Transfers the contents of the accumulator to memory.
+		  /// Affects none of the flags in the processor status register and does not affect the accumulator.
+		  
+		  Memory(EffectiveAddress(addressMode)) = A
+		  
+		  Select Case addressMode
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 5
+		    
+		  Case AddressModes.YIndexedAbsolute
+		    TotalCycles = TotalCycles + 5
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    TotalCycles = TotalCycles + 6
+		  End Select
+		  
 		End Sub
 	#tag EndMethod
 

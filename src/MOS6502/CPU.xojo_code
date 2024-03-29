@@ -591,6 +591,9 @@ Protected Class CPU
 		    Var baseAddress As UInt16 = CType(FetchByte, UInt16) * 256 + baseLSB + Y
 		    Return baseAddress
 		    
+		  Case AddressModes.YIndexedZeroPage
+		    Return FetchByte + Y
+		    
 		  Case AddressModes.ZeroPage
 		    Return FetchByte
 		    
@@ -921,6 +924,9 @@ Protected Class CPU
 		  Case &h85 // STA $nn
 		    STA(AddressModes.ZeroPage)
 		    
+		  Case &h86 // STX $nn
+		    STX(AddressModes.ZeroPage)
+		    
 		  Case &h88 // DEY
 		    DEY
 		    
@@ -933,6 +939,9 @@ Protected Class CPU
 		  Case &h8D // STA $nnnn
 		    STA(AddressModes.Absolute)
 		    
+		  Case &h8E // STX $nnnn
+		    STX(AddressModes.Absolute)
+		    
 		  Case &h90 // BCC
 		    BCC
 		    
@@ -944,6 +953,9 @@ Protected Class CPU
 		    
 		  Case &h95 // STA $nn,X
 		    STA(AddressModes.XIndexedZeroPage)
+		    
+		  Case &h96 // STX $nn,Y
+		    STX(AddressModes.YIndexedZeroPage)
 		    
 		  Case &h98 // TYA
 		    TYA
@@ -1753,6 +1765,32 @@ Protected Class CPU
 		    
 		  Case AddressModes.ZeroPageIndirectYIndexed
 		    TotalCycles = TotalCycles + 6
+		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 535458202D2053746F726520496E646578205265676973746572205820496E204D656D6F7279
+		Private Sub STX(addressMode As MOS6502.AddressModes)
+		  /// STX - Store Index Register X In Memory
+		  ///
+		  /// Operation: X → M
+		  ///
+		  /// Transfer the value of the X register to the addressed memory location.
+		  /// 
+		  /// Does not affect any flags or registers in the microprocessor.
+		  
+		  Memory(EffectiveAddress(addressMode)) = X
+		  
+		  Select Case addressMode
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.YIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
 		  End Select
 		  
 		End Sub

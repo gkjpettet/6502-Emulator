@@ -1210,6 +1210,9 @@ Protected Class CPU
 		  Case &hE5 // SBC $nn
 		    SBC(AddressModes.ZeroPage)
 		    
+		  Case &hE6 // INC $nn
+		    INC(AddressModes.ZeroPage)
+		    
 		  Case &hE8 // INX
 		    INX
 		    
@@ -1225,6 +1228,9 @@ Protected Class CPU
 		  Case &hED // SBC $nnnn
 		    SBC(AddressModes.Absolute)
 		    
+		  Case &hEE // INC $nnnn
+		    INC(AddressModes.Absolute)
+		    
 		  Case &hF0 // BEQ
 		    BEQ
 		    
@@ -1233,6 +1239,9 @@ Protected Class CPU
 		    
 		  Case &hF5 // SBC $nn,X
 		    SBC(AddressModes.XIndexedZeroPage)
+		    
+		  Case &hF6 // INC $nn,X
+		    INC(AddressModes.XIndexedZeroPage)
 		    
 		  Case &hF8 // SED
 		    DecimalFlag = True
@@ -1243,6 +1252,9 @@ Protected Class CPU
 		    
 		  Case &hFD // SBC $nnnn,X
 		    SBC(AddressModes.XIndexedAbsolute)
+		    
+		  Case &hFE // INC $nnnn,X
+		    INC(AddressModes.XIndexedAbsolute)
 		    
 		  Else
 		    // Invalid opcode. Halt the CPU.
@@ -1263,6 +1275,45 @@ Protected Class CPU
 		  Return value
 		  
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 494E43202D20496E6372656D656E74204D656D6F7279204279204F6E652E
+		Private Sub INC(addressMode As MOS6502.AddressModes)
+		  /// INC - Increment Memory By One.
+		  ///
+		  /// Operation: M + 1 → M
+		  ///
+		  /// Adds 1 to the contents of the addressed memory loca­tion.
+		  ///
+		  /// Does not affect any internal registers and does not affect the carry or overflow flags. 
+		  /// If bit 7 is on as the result of the increment,N is set, otherwise it is reset.
+		  /// If the increment causes the result to become 0, the Z flag is set on, otherwise it is reset.
+		  
+		  Var address As UInt16 = EffectiveAddress(addressMode)
+		  Var data As UInt8 = Memory(address)
+		  
+		  Var result As UInt8 = data + 1
+		  Memory(address) = result
+		  
+		  NegativeFlag = (result And &b10000000) <> 0
+		  
+		  ZeroFlag = (result = 0)
+		  
+		  Select Case addressMode
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 7
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 5
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 6
+		  End Select
+		  
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 494E58202D20496E6372656D656E7420496E6465782052656769737465722058204279204F6E652E

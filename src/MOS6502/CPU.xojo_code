@@ -934,6 +934,10 @@ Protected Class CPU
 		  Case &hB0 // BCS
 		    BCS
 		    
+		  Case &hB8 // CLV
+		    OverflowFlag = False
+		    TotalCycles = TotalCycles + 2
+		    
 		  Case &hD0 // BNE
 		    BNE
 		    

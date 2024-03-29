@@ -976,11 +976,17 @@ Protected Class CPU
 		  Case &hA1 // LDA ($nn,X)
 		    LDA(AddressModes.XIndexedZeroPageIndirect)
 		    
+		  Case &hA2 // LDX #$nn
+		    LDX(AddressModes.Immediate)
+		    
 		  Case &hA4 // LDY $nn
 		    LDY(AddressModes.ZeroPage)
 		    
 		  Case &hA5 // LDA $nn
 		    LDA(AddressModes.ZeroPage)
+		    
+		  Case &hA6 // LDX $nn
+		    LDX(AddressModes.ZeroPage)
 		    
 		  Case &hA8 // TAY
 		    TAY
@@ -997,6 +1003,9 @@ Protected Class CPU
 		  Case &hAD // LDA $nnnn
 		    LDA(AddressModes.Absolute)
 		    
+		  Case &hAE // LDX $nnnn
+		    LDX(AddressModes.Absolute)
+		    
 		  Case &hB0 // BCS
 		    BCS
 		    
@@ -1008,6 +1017,9 @@ Protected Class CPU
 		    
 		  Case &hB5 // LDA $nn,X
 		    LDA(AddressModes.XIndexedZeroPage)
+		    
+		  Case &hB6 // LDX $nn,Y
+		    LDX(AddressModes.YIndexedZeroPage)
 		    
 		  Case &hB8 // CLV
 		    OverflowFlag = False
@@ -1024,6 +1036,9 @@ Protected Class CPU
 		    
 		  Case &hBD // LDA $nnnn,X
 		    LDA(AddressModes.XIndexedAbsolute)
+		    
+		  Case &hBE // LDX $nnnn,Y
+		    LDX(AddressModes.YIndexedAbsolute)
 		    
 		  Case &hC8 // INY
 		    INY
@@ -1248,6 +1263,53 @@ Protected Class CPU
 		    
 		  Case AddressModes.ZeroPageIndirectYIndexed
 		    TotalCycles = TotalCycles + 5 + If(CrossedPageBoundary, 1, 0)
+		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 4C4458202D204C6F616420496E64657820526567697374657220582046726F6D204D656D6F72792E
+		Private Sub LDX(addressMode As MOS6502.AddressModes)
+		  /// LDX - Load Index Register X From Memory.
+		  ///
+		  /// Operation: M → X
+		  /// 
+		  /// Load the index register X from memory.
+		  ///
+		  /// Does not affect the C or V flags.
+		  /// Sets the N flag if the value loaded in bit 7 is a 1, otherwise resets N.
+		  /// Sets Z flag if the loaded value is zero otherwise resets Z.
+		  /// Only affects the X register.
+		  
+		  // Get the data.
+		  Var data As UInt8
+		  If addressMode = AddressModes.Immediate Then
+		    data = FetchByte
+		  Else
+		    data = Memory(EffectiveAddress(addressMode))
+		  End If
+		  
+		  X = data
+		  
+		  NegativeFlag = (X And &b10000000) <> 0
+		  
+		  ZeroFlag = (X = 0)
+		  
+		  Select Case addressMode
+		  Case AddressModes.Immediate
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
 		  End Select
 		  
 		End Sub

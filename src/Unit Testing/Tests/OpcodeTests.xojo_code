@@ -602,6 +602,12 @@ Inherits TestGroup
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub OpcodeA2Test()
+		  Run("A2")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub OpcodeA4Test()
 		  Run("A4")
 		End Sub
@@ -610,6 +616,12 @@ Inherits TestGroup
 	#tag Method, Flags = &h0
 		Sub OpcodeA5Test()
 		  Run("A5")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub OpcodeA6Test()
+		  Run("A6")
 		End Sub
 	#tag EndMethod
 
@@ -644,6 +656,12 @@ Inherits TestGroup
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Sub OpcodeAETest()
+		  Run("AE")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub OpcodeB0Test()
 		  Run("B0")
 		End Sub
@@ -664,6 +682,12 @@ Inherits TestGroup
 	#tag Method, Flags = &h0
 		Sub OpcodeB5Test()
 		  Run("B5")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub OpcodeB6Test()
+		  Run("B6")
 		End Sub
 	#tag EndMethod
 
@@ -694,6 +718,12 @@ Inherits TestGroup
 	#tag Method, Flags = &h0
 		Sub OpcodeBDTest()
 		  Run("BD")
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub OpcodeBETest()
+		  Run("BE")
 		End Sub
 	#tag EndMethod
 

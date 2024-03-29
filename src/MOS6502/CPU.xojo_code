@@ -18,6 +18,15 @@ Protected Class CPU
 		  /// negative flag is reset. 
 		  /// The zero flag is set if the accumulator result is 0, otherwise the zero flag is reset.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  // Get the operand.
 		  Var operand As UInt8
 		  If addressMode = AddressModes.Immediate Then
@@ -123,6 +132,15 @@ Protected Class CPU
 		  /// Sets the zero flag if the result in the accumulator is 0, otherwise resets the zero flag.
 		  /// Sets the negative flag if the result in the accumulator has bit 7 on, otherwise resets it.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  // Get the data.
 		  Var data As UInt8
 		  If addressMode = AddressModes.Immediate Then
@@ -183,6 +201,15 @@ Protected Class CPU
 		  /// Sets Z flag if the result is equal to 0, otherwise resets Z and stores the input bit 7 in 
 		  /// the carry flag.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  // Get the data to work on.
 		  Var address As UInt16
 		  Var data As UInt8
@@ -239,6 +266,15 @@ Protected Class CPU
 		  /// Affects no flags or registers other than the program counter and then only if the C flag 
 		  /// is not on.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
 		  
 		  If Not CarryFlag Then
@@ -260,6 +296,15 @@ Protected Class CPU
 		  /// Does not affect any of the flags or registers except for the program counter and only then 
 		  /// if the carry flag is on.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
 		  
 		  If CarryFlag Then
@@ -268,6 +313,7 @@ Protected Class CPU
 		  Else
 		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
 		  End If
+		  
 		End Sub
 	#tag EndMethod
 
@@ -282,6 +328,15 @@ Protected Class CPU
 		  /// Does not affect any of the flags or registers other than the program counter and only then 
 		  /// when the Z flag is set.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
 		  
 		  If ZeroFlag Then
@@ -290,6 +345,7 @@ Protected Class CPU
 		  Else
 		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
 		  End If
+		  
 		End Sub
 	#tag EndMethod
 
@@ -308,6 +364,15 @@ Protected Class CPU
 		  /// result is Zero, Z is reset otherwise. 
 		  /// It does not affect the accumulator.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  // Get the data to test against.
 		  Var data As UInt8 = Memory(EffectiveAddress(addressMode))
 		  
@@ -323,6 +388,7 @@ Protected Class CPU
 		    TotalCycles = TotalCycles + 3
 		  End Select
 		  
+		  
 		End Sub
 	#tag EndMethod
 
@@ -336,6 +402,15 @@ Protected Class CPU
 		  /// Does not affect any of the flags or any other part of the machine other than the program 
 		  /// counter and then only if the N bit is on.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
 		  
 		  If NegativeFlag Then
@@ -344,6 +419,7 @@ Protected Class CPU
 		  Else
 		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
 		  End If
+		  
 		  
 		End Sub
 	#tag EndMethod
@@ -359,6 +435,15 @@ Protected Class CPU
 		  /// Does not affect any of the flags or registers other than the program counter and only then 
 		  /// if the Z flag is reset.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
 		  
 		  If Not ZeroFlag Then
@@ -367,6 +452,7 @@ Protected Class CPU
 		  Else
 		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
 		  End If
+		  
 		End Sub
 	#tag EndMethod
 
@@ -384,6 +470,15 @@ Protected Class CPU
 		  /// The instruction affects no flags or other registers other than the P counter and only affects 
 		  /// the P counter when the N bit is reset.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
 		  
 		  If Not NegativeFlag Then
@@ -393,12 +488,22 @@ Protected Class CPU
 		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
 		  End If
 		  
+		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 4578656375746573207468652042524B206F70636F64652C2072657475726E696E6720746865206E756D626572206F66206379636C65732074616B656E2E
 		Private Sub BRK()
 		  /// Executes the BRK opcode, returning the number of cycles taken.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  // Push the program counter + 1 to the stack.
 		  PushWord(PC + 1)
@@ -414,6 +519,7 @@ Protected Class CPU
 		  
 		  TotalCycles = TotalCycles + 7
 		  
+		  
 		End Sub
 	#tag EndMethod
 
@@ -427,6 +533,15 @@ Protected Class CPU
 		  /// Does not affect any of the flags and registers other than the program counter and only 
 		  /// when the overflow flag is reset.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
 		  
 		  If Not OverflowFlag Then
@@ -435,6 +550,7 @@ Protected Class CPU
 		  Else
 		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
 		  End If
+		  
 		  
 		End Sub
 	#tag EndMethod
@@ -449,6 +565,15 @@ Protected Class CPU
 		  /// Does not affect any flags or registers other than the program counter and only when the 
 		  /// overflow flag is set.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var targetAddress As UInt16 = EffectiveAddress(AddressModes.Relative)
 		  
 		  If OverflowFlag Then
@@ -457,6 +582,7 @@ Protected Class CPU
 		  Else
 		    TotalCycles = TotalCycles + 2 + If(CrossedPageBoundary, 1, 0)
 		  End If
+		  
 		End Sub
 	#tag EndMethod
 
@@ -497,6 +623,15 @@ Protected Class CPU
 		  /// If the value in `register` and the value in the memory are equal, the zero flag 
 		  /// will be set, otherwise it will be cleared.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  // Get the operand.
 		  Var operand As UInt8
 		  If addressMode = AddressModes.Immediate Then
@@ -536,6 +671,7 @@ Protected Class CPU
 		    TotalCycles = TotalCycles + 5 + If(CrossedPageBoundary, 1, 0)
 		  End Select
 		  
+		  
 		End Sub
 	#tag EndMethod
 
@@ -559,6 +695,15 @@ Protected Class CPU
 		  /// It does not affect the carry or overflow flags. 
 		  /// If bit 7 is on as a result of the decrement, then the N flag is set, otherwise it is reset. 
 		  /// If the result of the decrement is 0, the Z flag is set, other­wise it is reset.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  Var address As UInt16 = EffectiveAddress(addressMode)
 		  Var data As UInt8 = Memory(address)
@@ -600,6 +745,15 @@ Protected Class CPU
 		  /// Sets the N flag if it has bit 7 on as a result of the decrement, otherwise it resets the N flag.
 		  /// Sets the Z flag if X is a 0 as a result of the decrement, otherwise it resets the Z flag.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  X = X - 1
 		  
 		  NegativeFlag = (X And &b10000000) <> 0
@@ -607,6 +761,7 @@ Protected Class CPU
 		  ZeroFlag = (X = 0)
 		  
 		  TotalCycles = TotalCycles + 2
+		  
 		  
 		End Sub
 	#tag EndMethod
@@ -627,13 +782,21 @@ Protected Class CPU
 		  /// Z flag is reset. 
 		  /// This instruction only affects the index register Y.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Y = Y - 1
 		  
 		  NegativeFlag = (Y And &b10000000) <> 0
 		  ZeroFlag = (Y = 0)
 		  
 		  TotalCycles = TotalCycles + 2
-		  
 		End Sub
 	#tag EndMethod
 
@@ -642,6 +805,15 @@ Protected Class CPU
 		  /// Returns the effective address given an address mode.
 		  /// Do not use this method if the address mode is Accumulator.
 		  /// Updates `PC` and `CrossedPageBoundary`.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  CrossedPageBoundary = False
 		  
@@ -716,6 +888,7 @@ Protected Class CPU
 		    Raise New UnsupportedOperationException("Unsupported address mode.")
 		  End Select
 		  
+		  
 		End Function
 	#tag EndMethod
 
@@ -730,6 +903,15 @@ Protected Class CPU
 		  /// Affects the accumulator.
 		  /// Sets the zero flag if the result in the accumulator is 0, otherwise resets the zero flag.
 		  /// Sets the negative flag if the result in the accumulator has bit 7 on, otherwise resets it.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  // Get the data.
 		  Var data As UInt8
@@ -774,6 +956,7 @@ Protected Class CPU
 		  Else
 		    Raise New UnsupportedOperationException("Unsupported EOR instruction.")
 		  End Select
+		  
 		End Sub
 	#tag EndMethod
 
@@ -782,9 +965,19 @@ Protected Class CPU
 		  /// Executes the next instruction. 
 		  /// This is a single fetch/decode/execute step.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  If Not Halted Then
 		    ExecuteInstruction(FetchByte)
 		  End If
+		  
 		  
 		End Sub
 	#tag EndMethod
@@ -792,6 +985,15 @@ Protected Class CPU
 	#tag Method, Flags = &h21, Description = 457865637574657320606F70636F64656020616E642072657475726E7320746865206E756D626572206F66206379636C657320697420746F6F6B2E
 		Private Sub ExecuteInstruction(opcode As UInt8)
 		  /// Executes `opcode` and returns the number of cycles it took.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  Select Case opcode
 		  Case &h00 // BRK
@@ -1261,6 +1463,8 @@ Protected Class CPU
 		    Halted = True
 		    Raise New MOS6502.Error("Invalid opcode " + opcode.ToString + ".")
 		  End Select
+		  
+		  
 		End Sub
 	#tag EndMethod
 
@@ -1268,11 +1472,21 @@ Protected Class CPU
 		Private Function FetchByte() As UInt8
 		  /// Fetches the next byte from memory (at address PC).
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var value As UInt8 = Memory.Read(PC)
 		  
 		  PC = PC + 1
 		  
 		  Return value
+		  
 		  
 		End Function
 	#tag EndMethod
@@ -1288,6 +1502,15 @@ Protected Class CPU
 		  /// Does not affect any internal registers and does not affect the carry or overflow flags. 
 		  /// If bit 7 is on as the result of the increment,N is set, otherwise it is reset.
 		  /// If the increment causes the result to become 0, the Z flag is set on, otherwise it is reset.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  Var address As UInt16 = EffectiveAddress(addressMode)
 		  Var data As UInt8 = Memory(address)
@@ -1332,6 +1555,15 @@ Protected Class CPU
 		  ///
 		  /// Does not affect any other register other than the X register.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  X = X + 1
 		  
 		  NegativeFlag = (X And &b10000000) <> 0
@@ -1356,6 +1588,15 @@ Protected Class CPU
 		  /// Sets the N flag if the result of the increment has a one in bit 7, otherwise resets N.
 		  /// Sets Z if as a result of the increment the Y register is zero otherwise resets the Z flag.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Y = Y + 1
 		  
 		  NegativeFlag = (Y And &b10000000) <> 0
@@ -1375,6 +1616,15 @@ Protected Class CPU
 		  ///
 		  /// It affects only the program counter in the microprocessor and affects no flags in the 
 		  /// status register.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  PC = EffectiveAddress(addressMode)
 		  
@@ -1406,6 +1656,15 @@ Protected Class CPU
 		  /// The JSR instruction affects no flags, causes the stack pointer to be decremented by 2 and 
 		  /// substitutes new values into the program counter low and the program counter high.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var address As UInt16 = EffectiveAddress(AddressModes.Absolute)
 		  
 		  PushWord(PC)
@@ -1429,6 +1688,15 @@ Protected Class CPU
 		  /// Does not affect the carry or overflow flags.
 		  /// Sets the zero flag if the accumulator is zero, otherwise resets the zero flag.
 		  /// Sets the negative flag if bit 7 of the accumulator is a 1, other­wise resets the negative flag.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  // Get the data.
 		  Var data As UInt8
@@ -1486,6 +1754,15 @@ Protected Class CPU
 		  /// Sets Z flag if the loaded value is zero otherwise resets Z.
 		  /// Only affects the X register.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  // Get the data.
 		  Var data As UInt8
 		  If addressMode = AddressModes.Immediate Then
@@ -1533,6 +1810,15 @@ Protected Class CPU
 		  /// Sets Z flag if the loaded value is zero otherwise resets Z.
 		  /// Only affects the Y register.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  // Get the data.
 		  Var data As UInt8
 		  If addressMode = AddressModes.Immediate Then
@@ -1579,6 +1865,15 @@ Protected Class CPU
 		  /// The N flag is always reset. 
 		  /// The Z flag is set if the result of the shift is 0 and reset otherwise. 
 		  /// The carry is set equal to bit 0 of the input.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  // Get the data to work on.
 		  Var address As UInt16
@@ -1638,6 +1933,15 @@ Protected Class CPU
 		  /// Sets the negative flag if the result in the accumulator has bit 7 on, otherwise resets the 
 		  /// negative flag.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  // Get the data.
 		  Var data As UInt8
 		  If addressMode = AddressModes.Immediate Then
@@ -1695,6 +1999,15 @@ Protected Class CPU
 		  /// the stack pointer.
 		  /// Affects no registers or flags in the micropro­cessor.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  PushByte(P)
 		  
 		  TotalCycles = TotalCycles + 3
@@ -1715,6 +2028,15 @@ Protected Class CPU
 		  /// Changes content of the accumulator A to the contents of the memory location at stack register 
 		  /// plus 1.
 		  /// Increments the stack register.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  A = PopWord
 		  
@@ -1737,13 +2059,21 @@ Protected Class CPU
 		  /// Transfers the next value on the stack to the Proces­sor Status register, thereby changing all 
 		  /// of the flags and setting the mode switches to the values from the stack.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  P = PopByte
 		  
 		  BreakFlag = False
 		  SetStatusBit5
 		  
 		  TotalCycles = TotalCycles + 4
-		  
 		End Sub
 	#tag EndMethod
 
@@ -1751,6 +2081,15 @@ Protected Class CPU
 		Private Function PopByte() As UInt8
 		  /// Pops a single byte from the memory location pointed to by the stack pointer (SP) 
 		  /// and then increments the stack pointer.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  SP = SP + 1
 		  
@@ -1767,6 +2106,15 @@ Protected Class CPU
 		  /// First pops the low byte then the high byte. This is because the 6502 stack grows downwards
 		  /// and the values are stored in little-endian order.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Var low As UInt8 = PopByte
 		  Var high As UInt8 = PopByte
 		  
@@ -1779,6 +2127,15 @@ Protected Class CPU
 		Private Sub PushByte(value As UInt8)
 		  /// Pushes a single byte to the memory location pointed to by the stack pointer (SP) 
 		  /// and then decrements the stack pointer.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  Memory.Write(&h0100 + SP, value)
 		  
@@ -1794,6 +2151,15 @@ Protected Class CPU
 		  /// First pushes the high byte of the value, followed by the low byte. 
 		  /// This is because the 6502 stack grows downward and the pushed values are stored in
 		  /// little-endian order.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  // Push high byte.
 		  PushByte(ShiftRight(value, 8) And &hFF)
@@ -1844,6 +2210,15 @@ Protected Class CPU
 		  /// Sets N equal to the input bit 6
 		  /// Sets the Z flag if the result of the ro­tate is 0, otherwise it resets Z
 		  /// Does not affect the overflow flag at all.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  // Get the data to work on.
 		  Var address As UInt16
@@ -1914,6 +2289,15 @@ Protected Class CPU
 		  /// Sets the Z flag if the result of the rotate is 0; otherwise it resets Z.
 		  /// Does not affect the overflow flag at all.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  // Get the data to work on.
 		  Var address As UInt16
 		  Var data As UInt16
@@ -1983,6 +2367,15 @@ Protected Class CPU
 		  /// was taken and sets the program counter back to its pre-interrupt state. 
 		  /// It affects no other registers in the microprocessor.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  P = PopByte
 		  
 		  // Clear the break flag and ensure bit 5 is set.
@@ -2003,6 +2396,15 @@ Protected Class CPU
 		  /// Operation: PC↑, PC + 1 → PC
 		  /// Restore the program counter from the stack and increment it by one. Adjust the stack pointer.
 		  /// The RTS instruction does not affect any flags and affects only PCL and PCH.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  Var pcl As UInt8 = PopByte
 		  Var pch As UInt8 = PopByte
@@ -2031,6 +2433,15 @@ Protected Class CPU
 		  /// The over­flow flag is set when the result exceeds +127 or -127, otherwise it is reset. 
 		  /// The negative flag is set if the result in the accumulator has bit 7 on, otherwise it is reset.
 		  /// The Z flag is set if the result in the accumulator is 0, otherwise it is reset.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  // Get the operand.
 		  Var operand As UInt8
@@ -2129,14 +2540,33 @@ Protected Class CPU
 		Private Sub SetArithmeticFlags(registerValue As UInt8)
 		  /// Sets the zero and negative flags of the status register based on a register's value.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  ZeroFlag = (registerValue = 0)
 		  NegativeFlag = (registerValue And &h80) <> 0
+		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 536574732074686520756E7573656420626974203520696E20746865207374617475732072656769737465722E
 		Private Sub SetStatusBit5()
 		  /// Sets the unused bit 5 in the status register.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  P = P Or &b00100000
 		End Sub
@@ -2150,6 +2580,15 @@ Protected Class CPU
 		  ///
 		  /// Transfers the contents of the accumulator to memory.
 		  /// Affects none of the flags in the processor status register and does not affect the accumulator.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  Memory(EffectiveAddress(addressMode)) = A
 		  
@@ -2189,6 +2628,15 @@ Protected Class CPU
 		  /// 
 		  /// Does not affect any flags or registers in the microprocessor.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Memory(EffectiveAddress(addressMode)) = X
 		  
 		  Select Case addressMode
@@ -2214,6 +2662,15 @@ Protected Class CPU
 		  /// Transfer the value of the Y register to the addressed memory location.
 		  /// 
 		  /// Does not affect any flags or registers in the microprocessor.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  Memory(EffectiveAddress(addressMode)) = Y
 		  
@@ -2246,6 +2703,15 @@ Protected Class CPU
 		  /// The Z bit is set if the content of the register X is 0 as aresult of the opera­tion, 
 		  /// otherwise it is reset.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  X = A
 		  
 		  NegativeFlag = (X And &b10000000) <> 0
@@ -2270,6 +2736,15 @@ Protected Class CPU
 		  /// If the content of the index register Y equals 0 as a result of the operation, 
 		  /// Z is set on, otherwise it is reset.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  Y = A
 		  
 		  NegativeFlag = (Y And &b10000000) <> 0
@@ -2293,6 +2768,15 @@ Protected Class CPU
 		  /// It sets N if bit 7 is on in index X as a result of the instruction, otherwise it is reset. 
 		  /// If index X is zero as a result of the TSX, the Z flag is set, other­wise it is reset. 
 		  /// TSX changes the value of index X, making it equal to the content of the stack pointer.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  X = SP
 		  
@@ -2319,6 +2803,15 @@ Protected Class CPU
 		  /// If the result in A has bit 7 on, then the N flag is set, otherwise it is reset. 
 		  /// If the resultant value in the accumulator is 0, then the Z flag is set, other­ wise it's reset.
 		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
+		  
 		  A = X
 		  
 		  NegativeFlag = (A And &b10000000) <> 0
@@ -2343,6 +2836,15 @@ Protected Class CPU
 		  /// carry or overflow flag. 
 		  /// If the result in the accumulator A has bit 7 on, the N flag is set, otherwise it is reset. 
 		  /// If the resultant value in the accumulator A is 0, then the Z flag is set, otherwise it's reset.
+		  
+		  #If Not DebugBuild
+		    #If Not TargetWeb
+		      #Pragma DisableBackgroundTasks
+		    #EndIf
+		    #Pragma NilObjectChecking False
+		    #Pragma StackOverflowChecking False
+		    #Pragma DisableBoundsChecking
+		  #EndIf
 		  
 		  A = Y
 		  

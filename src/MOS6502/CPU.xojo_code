@@ -915,6 +915,9 @@ Protected Class CPU
 		  Case &h81 // STA ($nn,X)
 		    STA(AddressModes.XIndexedZeroPageIndirect)
 		    
+		  Case &h84 // STY $nn
+		    STY(AddressModes.ZeroPage)
+		    
 		  Case &h85 // STA $nn
 		    STA(AddressModes.ZeroPage)
 		    
@@ -924,6 +927,9 @@ Protected Class CPU
 		  Case &h8A // TXA
 		    TXA
 		    
+		  Case &h8C // STY $nnnn
+		    STY(AddressModes.Absolute)
+		    
 		  Case &h8D // STA $nnnn
 		    STA(AddressModes.Absolute)
 		    
@@ -932,6 +938,9 @@ Protected Class CPU
 		    
 		  Case &h91 // STA ($nn),Y
 		    STA(AddressModes.ZeroPageIndirectYIndexed)
+		    
+		  Case &h94 // STY $nn,X
+		    STY(AddressModes.XIndexedZeroPage)
 		    
 		  Case &h95 // STA $nn,X
 		    STA(AddressModes.XIndexedZeroPage)
@@ -1744,6 +1753,32 @@ Protected Class CPU
 		    
 		  Case AddressModes.ZeroPageIndirectYIndexed
 		    TotalCycles = TotalCycles + 6
+		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 535459202D2053746F726520496E646578205265676973746572205920496E204D656D6F7279
+		Private Sub STY(addressMode As MOS6502.AddressModes)
+		  /// STY - Store Index Register Y In Memory
+		  ///
+		  /// Operation: Y → M
+		  ///
+		  /// Transfer the value of the Y register to the addressed memory location.
+		  /// 
+		  /// Does not affect any flags or registers in the microprocessor.
+		  
+		  Memory(EffectiveAddress(addressMode)) = Y
+		  
+		  Select Case addressMode
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
 		  End Select
 		  
 		End Sub

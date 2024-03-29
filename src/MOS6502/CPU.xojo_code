@@ -928,6 +928,9 @@ Protected Class CPU
 		  Case &hAA // TAX
 		    TAX
 		    
+		  Case &hA8 // TAY
+		    TAY
+		    
 		  Case &hB0 // BCS
 		    BCS
 		    
@@ -1668,6 +1671,30 @@ Protected Class CPU
 		  NegativeFlag = (X And &b10000000) <> 0
 		  
 		  ZeroFlag = (X = 0)
+		  
+		  TotalCycles = TotalCycles + 2
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 544159202D205472616E7366657220416363756D756C61746F7220546F20496E64657820592E
+		Private Sub TAY()
+		  /// TAY - Transfer Accumulator To Index Y.
+		  ///
+		  /// Operation: A → Y
+		  ///
+		  /// Moves the value of the accumulator into index register Y without affecting the accumulator.
+		  /// 
+		  /// Only affects the Y register and does not affect either the carry or overflow flags. 
+		  /// If the index register Y has bit 7 on, then N is set, otherwise it is reset. 
+		  /// If the content of the index register Y equals 0 as a result of the operation, 
+		  /// Z is set on, otherwise it is reset.
+		  
+		  Y = A
+		  
+		  NegativeFlag = (Y And &b10000000) <> 0
+		  
+		  ZeroFlag = (Y = 0)
 		  
 		  TotalCycles = TotalCycles + 2
 		  

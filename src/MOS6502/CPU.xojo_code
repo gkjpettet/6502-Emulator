@@ -487,6 +487,32 @@ Protected Class CPU
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 444559202D2044656372656D656E7420496E6465782052656769737465722059204279204F6E652E
+		Private Sub DEY()
+		  /// DEY - Decrement Index Register Y By One.
+		  ///
+		  /// Operation: Y - 1 → Y
+		  /// Subtracts one from the current value in the in­dex register Y and stores the result into the 
+		  /// index register Y. The result does not affect or consider carry so that the value in the 
+		  /// index register Y is decremented to 0 and then through 0 to FF.
+		  ///
+		  /// Does not affect the carry or overflow flags.
+		  /// If the Y register contains bit 7 on as a result of the decrement the N flag is set, otherwise 
+		  /// the N flag is reset. 
+		  /// If the Y register is 0 as a result of the decrement, the Z flag is set otherwise the 
+		  /// Z flag is reset. 
+		  /// This instruction only affects the index register Y.
+		  
+		  Y = Y - 1
+		  
+		  NegativeFlag = (Y And &b10000000) <> 0
+		  ZeroFlag = (Y = 0)
+		  
+		  TotalCycles = TotalCycles + 2
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 52657475726E732074686520656666656374697665206164647265737320676976656E20616E2061646472657373206D6F64652E20446F206E6F74207573652074686973206D6574686F64206966207468652061646472657373206D6F646520697320416363756D756C61746F722E2055706461746573206050436020616E64206043726F7373656450616765426F756E64617279602E
 		Private Function EffectiveAddress(addressMode As MOS6502.AddressModes) As UInt16
 		  /// Returns the effective address given an address mode.
@@ -867,6 +893,9 @@ Protected Class CPU
 		    
 		  Case &h85 // STA $nn
 		    STA(AddressModes.ZeroPage)
+		    
+		  Case &h88 // DEY
+		    DEY
 		    
 		  Case &h8D // STA $nnnn
 		    STA(AddressModes.Absolute)

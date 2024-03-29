@@ -938,6 +938,9 @@ Protected Class CPU
 		    OverflowFlag = False
 		    TotalCycles = TotalCycles + 2
 		    
+		  Case &hC8 // INY
+		    INY
+		    
 		  Case &hD0 // BNE
 		    BNE
 		    
@@ -946,6 +949,9 @@ Protected Class CPU
 		    
 		  Case &hE5 // SBC $nn
 		    SBC(AddressModes.ZeroPage)
+		    
+		  Case &hE8 // INX
+		    INX
 		    
 		  Case &hE9 // SBC #$nn
 		    SBC(AddressModes.Immediate)
@@ -991,6 +997,57 @@ Protected Class CPU
 		  Return value
 		  
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 494E58202D20496E6372656D656E7420496E6465782052656769737465722058204279204F6E652E
+		Private Sub INX()
+		  /// INX - Increment Index Register X By One.
+		  /// 
+		  /// Operation: X + 1 → X
+		  /// 
+		  /// Adds 1 to the current value of the X register. This is an 8-bit increment which does not 
+		  /// affect the carry operation, therefore, if the value of X before the increment was FF, 
+		  /// the resulting value is 00.
+		  /// 
+		  /// Does not affect the carry or overflow flags.
+		  /// Sets the N flag if the result of the increment has a one in bit 7, otherwise resets N.
+		  /// Sets the Z flag if the result of the increment is 0, otherwise it resets the Z flag.
+		  ///
+		  /// Does not affect any other register other than the X register.
+		  
+		  X = X + 1
+		  
+		  NegativeFlag = (X And &b10000000) <> 0
+		  
+		  ZeroFlag = (X = 0)
+		  
+		  TotalCycles = TotalCycles + 2
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub INY()
+		  /// INY - Increment Index Register Y By One.
+		  ///
+		  /// Operation: Y + 1 → Y
+		  ///
+		  /// Adds one to the current value in the Y register, storing the result in the Y register. 
+		  /// As in the case of INX the primary application is to step through a set of values using the 
+		  /// Y register.
+		  /// Does not affect the carry or overflow flags.
+		  /// Sets the N flag if the result of the increment has a one in bit 7, otherwise resets N.
+		  /// Sets Z if as a result of the increment the Y register is zero otherwise resets the Z flag.
+		  
+		  Y = Y + 1
+		  
+		  NegativeFlag = (Y And &b10000000) <> 0
+		  
+		  ZeroFlag = (Y = 0)
+		  
+		  TotalCycles = TotalCycles + 2
+		  
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21, Description = 4A4D50202D204A4D5020496E6469726563742E

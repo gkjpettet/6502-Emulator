@@ -517,8 +517,23 @@ Protected Class CPU
 		  Case AddressModes.Absolute
 		    TotalCycles = TotalCycles + 4
 		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.YIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
 		  Case AddressModes.ZeroPage
 		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    TotalCycles = TotalCycles + 5 + If(CrossedPageBoundary, 1, 0)
 		  End Select
 		  
 		End Sub
@@ -1088,11 +1103,20 @@ Protected Class CPU
 		  Case &hC0 // CPY #$nn
 		    Compare(Y, AddressModes.Immediate)
 		    
+		  Case &hC1 // CMP ($nn,X)
+		    Compare(A, AddressModes.XIndexedZeroPageIndirect)
+		    
 		  Case &hC4 // CPY $nn
 		    Compare(Y, AddressModes.ZeroPage)
 		    
+		  Case &hC5 // CMP $nn
+		    Compare(A, AddressModes.ZeroPage)
+		    
 		  Case &hC8 // INY
 		    INY
+		    
+		  Case &hC9 // CMP #$nn
+		    Compare(A, AddressModes.Immediate)
 		    
 		  Case &hCA // DEX
 		    DEX
@@ -1100,12 +1124,27 @@ Protected Class CPU
 		  Case &hCC // CPY $nnnn
 		    Compare(Y, AddressModes.Absolute)
 		    
+		  Case &hCD // CMP $nnnn
+		    Compare(A, AddressModes.Absolute)
+		    
 		  Case &hD0 // BNE
 		    BNE
+		    
+		  Case &hD1 // CMP ($nn),Y
+		    Compare(A, AddressModes.ZeroPageIndirectYIndexed)
+		    
+		  Case &hD5 // CMP $nn,X
+		    Compare(A, AddressModes.XIndexedZeroPage)
 		    
 		  Case &hD8 // CLD
 		    DecimalFlag = False
 		    TotalCycles = TotalCycles + 2
+		    
+		  Case &hD9 // CMP $nnnn,Y
+		    Compare(A, AddressModes.YIndexedAbsolute)
+		    
+		  Case &hDD // CMP $nnnn,X
+		    Compare(A, AddressModes.XIndexedAbsolute)
 		    
 		  Case &hE0 // CPX #$nn
 		    Compare(X, AddressModes.Immediate)

@@ -944,6 +944,10 @@ Protected Class CPU
 		  Case &hD0 // BNE
 		    BNE
 		    
+		  Case &hD8 // CLD
+		    DecimalFlag = False
+		    TotalCycles = TotalCycles + 2
+		    
 		  Case &hE1 // SBC ($nn,X)
 		    SBC(AddressModes.XIndexedZeroPageIndirect)
 		    

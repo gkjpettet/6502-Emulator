@@ -479,6 +479,51 @@ Protected Class CPU
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h21, Description = 436F6D7061726573206120726567697374657220746F206D656D6F72792E
+		Private Sub Compare(register As UInt8, addressMode As MOS6502.AddressModes)
+		  /// Compares a register to memory.
+		  ///
+		  /// Operation: register - M
+		  ///
+		  /// Performs a two's complement subtraction between the `register` and the specified 
+		  /// memory location. The results of the subtraction are not stored anywhere. 
+		  /// The instruction is strict­ly used to set the flags.
+		  ///
+		  /// Does not affect the overflow flag. 
+		  /// If the value in `register` is equal to or greater than the value in the memory, the 
+		  /// carry flag will be set, otherwise it will be cleared. 
+		  /// If the results of the subtraction contain bit 7 on the N bit will be set, otherwise it will 
+		  /// be cleared. 
+		  /// If the value in `register` and the value in the memory are equal, the zero flag 
+		  /// will be set, otherwise it will be cleared.
+		  
+		  // Get the operand.
+		  Var operand As UInt8
+		  If addressMode = AddressModes.Immediate Then
+		    operand = FetchByte
+		  Else
+		    operand = Memory(EffectiveAddress(addressMode))
+		  End If
+		  
+		  Var tmp As Integer = (register - operand) And &hFF
+		  CarryFlag = register >= operand
+		  ZeroFlag = (tmp = 0)
+		  NegativeFlag = (tmp And &h80) <> 0
+		  
+		  Select Case addressMode
+		  Case AddressModes.Immediate
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Sub Constructor(mem As MOS6502.Memory)
 		  Self.Memory = mem
@@ -1040,11 +1085,20 @@ Protected Class CPU
 		  Case &hBE // LDX $nnnn,Y
 		    LDX(AddressModes.YIndexedAbsolute)
 		    
+		  Case &hC0 // CPY #$nn
+		    Compare(Y, AddressModes.Immediate)
+		    
+		  Case &hC4 // CPY $nn
+		    Compare(Y, AddressModes.ZeroPage)
+		    
 		  Case &hC8 // INY
 		    INY
 		    
 		  Case &hCA // DEX
 		    DEX
+		    
+		  Case &hCC // CPY $nnnn
+		    Compare(Y, AddressModes.Absolute)
 		    
 		  Case &hD0 // BNE
 		    BNE
@@ -1053,8 +1107,14 @@ Protected Class CPU
 		    DecimalFlag = False
 		    TotalCycles = TotalCycles + 2
 		    
+		  Case &hE0 // CPX #$nn
+		    Compare(X, AddressModes.Immediate)
+		    
 		  Case &hE1 // SBC ($nn,X)
 		    SBC(AddressModes.XIndexedZeroPageIndirect)
+		    
+		  Case &hE4 // CPX $nn
+		    Compare(X, AddressModes.ZeroPage)
 		    
 		  Case &hE5 // SBC $nn
 		    SBC(AddressModes.ZeroPage)
@@ -1067,6 +1127,9 @@ Protected Class CPU
 		    
 		  Case &hEA // NOP
 		    TotalCycles = TotalCycles + 2
+		    
+		  Case &hEC // CPX $nnnn
+		    Compare(X, AddressModes.Absolute)
 		    
 		  Case &hED // SBC $nnnn
 		    SBC(AddressModes.Absolute)

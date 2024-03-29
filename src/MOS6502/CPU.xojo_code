@@ -925,6 +925,9 @@ Protected Class CPU
 		  Case &h9D // STA $nnnn,X
 		    STA(AddressModes.XIndexedAbsolute)
 		    
+		  Case &hAA // TAX
+		    TAX
+		    
 		  Case &hB0 // BCS
 		    BCS
 		    
@@ -1641,6 +1644,32 @@ Protected Class CPU
 		  Case AddressModes.ZeroPageIndirectYIndexed
 		    TotalCycles = TotalCycles + 6
 		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 544158202D205472616E7366657220416363756D756C61746F7220546F20496E64657820582E
+		Private Sub TAX()
+		  /// TAX - Transfer Accumulator To Index X.
+		  ///
+		  /// Operation: A → X
+		  ///
+		  /// Takes the value from accumulator A and trans­fers or loads it into the index register X 
+		  /// without disturbing the content of the accumulator A.
+		  ///
+		  /// Only affects the index register X, does not affect the carry or overflow flags. 
+		  /// The N flag is set if the resultant value in the index register X has bit 7 on, 
+		  /// otherwise N is reset. 
+		  /// The Z bit is set if the content of the register X is 0 as aresult of the opera­tion, 
+		  /// otherwise it is reset.
+		  
+		  X = A
+		  
+		  NegativeFlag = (X And &b10000000) <> 0
+		  
+		  ZeroFlag = (X = 0)
+		  
+		  TotalCycles = TotalCycles + 2
 		  
 		End Sub
 	#tag EndMethod

@@ -970,14 +970,26 @@ Protected Class CPU
 		  Case &h9D // STA $nnnn,X
 		    STA(AddressModes.XIndexedAbsolute)
 		    
-		  Case &hAA // TAX
-		    TAX
+		  Case &hA0 // LDY #$nn
+		    LDY(AddressModes.Immediate)
+		    
+		  Case &hA4 // LDY $nn
+		    LDY(AddressModes.ZeroPage)
 		    
 		  Case &hA8 // TAY
 		    TAY
 		    
+		  Case &hAA // TAX
+		    TAX
+		    
+		  Case &hAC // LDY $nnnn
+		    LDY(AddressModes.Absolute)
+		    
 		  Case &hB0 // BCS
 		    BCS
+		    
+		  Case &hB4 // LDY $nn,X
+		    LDY(AddressModes.XIndexedZeroPage)
 		    
 		  Case &hB8 // CLV
 		    OverflowFlag = False
@@ -985,6 +997,9 @@ Protected Class CPU
 		    
 		  Case &hBA // TSX
 		    TSX
+		    
+		  Case &hBC // LDY $nnnn,X
+		    LDY(AddressModes.XIndexedAbsolute)
 		    
 		  Case &hC8 // INY
 		    INY
@@ -1154,6 +1169,53 @@ Protected Class CPU
 		  PC = address
 		  
 		  TotalCycles = TotalCycles + 6
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 4C4459202D204C6F616420496E64657820526567697374657220592046726F6D204D656D6F72792E
+		Private Sub LDY(addressMode As MOS6502.AddressModes)
+		  /// LDY - Load Index Register Y From Memory.
+		  ///
+		  /// Operation: M → Y
+		  /// 
+		  /// Load the index register Y from memory.
+		  ///
+		  /// Does not affect the C or V flags.
+		  /// Sets the N flag if the value loaded in bit 7 is a 1, otherwise resets N.
+		  /// Sets Z flag if the loaded value is zero otherwise resets Z.
+		  /// Only affects the Y register.
+		  
+		  // Get the data.
+		  Var data As UInt8
+		  If addressMode = AddressModes.Immediate Then
+		    data = FetchByte
+		  Else
+		    data = Memory(EffectiveAddress(addressMode))
+		  End If
+		  
+		  Y = data
+		  
+		  NegativeFlag = (Y And &b10000000) <> 0
+		  
+		  ZeroFlag = (Y = 0)
+		  
+		  Select Case addressMode
+		  Case AddressModes.Immediate
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
+		  End Select
 		  
 		End Sub
 	#tag EndMethod

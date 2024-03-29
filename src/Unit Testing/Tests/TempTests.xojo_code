@@ -40,50 +40,8 @@ Inherits TestGroup
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub OpcodeE1Test()
-		  Run("E1")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeE5Test()
-		  Run("E5")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeE9Test()
-		  Run("E9")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeEDTest()
-		  Run("ED")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeF1Test()
-		  Run("F1")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeF5Test()
-		  Run("F5")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeF9Test()
-		  Run("F9")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeFDTest()
-		  Run("FD")
+		Sub Opcode7ETest()
+		  Run("7E")
 		End Sub
 	#tag EndMethod
 
@@ -104,6 +62,10 @@ Inherits TestGroup
 		    Var initial As New CPUState(test.Value("initial"), test.Lookup("name", ""))
 		    Var expected As New CPUState(test.Value("final"), test.Lookup("name", ""))
 		    SetCPUState(initial)
+		    
+		    ' if initial.TestName = "66 8e f6" then
+		    ' break
+		    ' end if
 		    
 		    CPU.Execute
 		    Assert.StatesEqual(CPU, expected, initial)

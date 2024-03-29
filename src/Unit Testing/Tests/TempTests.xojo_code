@@ -40,32 +40,8 @@ Inherits TestGroup
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub OpcodeA0Test()
-		  Run("A0")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeA4Test()
-		  Run("A4")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeACTest()
-		  Run("AC")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeB4Test()
-		  Run("B4")
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub OpcodeBCTest()
-		  Run("BC")
+		Sub OpcodeBDTest()
+		  Run("BD")
 		End Sub
 	#tag EndMethod
 

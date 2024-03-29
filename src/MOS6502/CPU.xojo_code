@@ -973,11 +973,20 @@ Protected Class CPU
 		  Case &hA0 // LDY #$nn
 		    LDY(AddressModes.Immediate)
 		    
+		  Case &hA1 // LDA ($nn,X)
+		    LDA(AddressModes.XIndexedZeroPageIndirect)
+		    
 		  Case &hA4 // LDY $nn
 		    LDY(AddressModes.ZeroPage)
 		    
+		  Case &hA5 // LDA $nn
+		    LDA(AddressModes.ZeroPage)
+		    
 		  Case &hA8 // TAY
 		    TAY
+		    
+		  Case &hA9 // LDA #$nn
+		    LDA(AddressModes.Immediate)
 		    
 		  Case &hAA // TAX
 		    TAX
@@ -985,21 +994,36 @@ Protected Class CPU
 		  Case &hAC // LDY $nnnn
 		    LDY(AddressModes.Absolute)
 		    
+		  Case &hAD // LDA $nnnn
+		    LDA(AddressModes.Absolute)
+		    
 		  Case &hB0 // BCS
 		    BCS
+		    
+		  Case &hB1 // LDA ($nn),Y
+		    LDA(AddressModes.ZeroPageIndirectYIndexed)
 		    
 		  Case &hB4 // LDY $nn,X
 		    LDY(AddressModes.XIndexedZeroPage)
 		    
+		  Case &hB5 // LDA $nn,X
+		    LDA(AddressModes.XIndexedZeroPage)
+		    
 		  Case &hB8 // CLV
 		    OverflowFlag = False
 		    TotalCycles = TotalCycles + 2
+		    
+		  Case &hB9 // LDA $nnnn,Y
+		    LDA(AddressModes.YIndexedAbsolute)
 		    
 		  Case &hBA // TSX
 		    TSX
 		    
 		  Case &hBC // LDY $nnnn,X
 		    LDY(AddressModes.XIndexedAbsolute)
+		    
+		  Case &hBD // LDA $nnnn,X
+		    LDA(AddressModes.XIndexedAbsolute)
 		    
 		  Case &hC8 // INY
 		    INY
@@ -1169,6 +1193,62 @@ Protected Class CPU
 		  PC = address
 		  
 		  TotalCycles = TotalCycles + 6
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 4C4441202D204C6F616420416363756D756C61746F722077697468204D656D6F72792E
+		Private Sub LDA(addressMode As MOS6502.AddressModes)
+		  /// LDA - Load Accumulator with Memory.
+		  ///
+		  /// Operation: M → A
+		  ///
+		  /// Data is transferred from memory to the accumulator and stored in the accumulator.
+		  ///
+		  /// Affects the contents of the accumulator.
+		  /// Does not affect the carry or overflow flags.
+		  /// Sets the zero flag if the accumulator is zero, otherwise resets the zero flag.
+		  /// Sets the negative flag if bit 7 of the accumulator is a 1, other­wise resets the negative flag.
+		  
+		  // Get the data.
+		  Var data As UInt8
+		  If addressMode = AddressModes.Immediate Then
+		    data = FetchByte
+		  Else
+		    data = Memory(EffectiveAddress(addressMode))
+		  End If
+		  
+		  A = data
+		  
+		  NegativeFlag = (A And &b10000000) <> 0
+		  
+		  ZeroFlag = (A = 0)
+		  
+		  Select Case addressMode
+		  Case AddressModes.Immediate
+		    TotalCycles = TotalCycles + 2
+		    
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.YIndexedAbsolute
+		    TotalCycles = TotalCycles + 4 + If(CrossedPageBoundary, 1, 0)
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 3
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 4
+		    
+		  Case AddressModes.XIndexedZeroPageIndirect
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.ZeroPageIndirectYIndexed
+		    TotalCycles = TotalCycles + 5 + If(CrossedPageBoundary, 1, 0)
+		  End Select
 		  
 		End Sub
 	#tag EndMethod

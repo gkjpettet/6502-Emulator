@@ -548,6 +548,46 @@ Protected Class CPU
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub DEC(addressMode As MOS6502.AddressModes)
+		  /// DEC - Decrement Memory By One.
+		  ///
+		  /// Operation: M - 1 → M
+		  ///
+		  /// Subtracts 1, in two's complement, from the contents of the addressed memory location.
+		  ///
+		  /// Does not affect any internal register in the microprocessor. 
+		  /// It does not affect the carry or overflow flags. 
+		  /// If bit 7 is on as a result of the decrement, then the N flag is set, otherwise it is reset. 
+		  /// If the result of the decrement is 0, the Z flag is set, other­wise it is reset.
+		  
+		  Var address As UInt16 = EffectiveAddress(addressMode)
+		  Var data As UInt8 = Memory(address)
+		  
+		  Var result As UInt8 = data - 1
+		  Memory(address) = result
+		  
+		  NegativeFlag = (result And &b10000000) <> 0
+		  
+		  ZeroFlag = (result = 0)
+		  
+		  Select Case addressMode
+		  Case AddressModes.Absolute
+		    TotalCycles = TotalCycles + 6
+		    
+		  Case AddressModes.XIndexedAbsolute
+		    TotalCycles = TotalCycles + 7
+		    
+		  Case AddressModes.ZeroPage
+		    TotalCycles = TotalCycles + 5
+		    
+		  Case AddressModes.XIndexedZeroPage
+		    TotalCycles = TotalCycles + 6
+		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub DEX()
 		  /// DEX - Decrement Index Register X By One
 		  ///
@@ -1112,6 +1152,9 @@ Protected Class CPU
 		  Case &hC5 // CMP $nn
 		    Compare(A, AddressModes.ZeroPage)
 		    
+		  Case &hC6 // DEC $nn
+		    DEC(AddressModes.ZeroPage)
+		    
 		  Case &hC8 // INY
 		    INY
 		    
@@ -1127,6 +1170,9 @@ Protected Class CPU
 		  Case &hCD // CMP $nnnn
 		    Compare(A, AddressModes.Absolute)
 		    
+		  Case &hCE // DEC $nnnn
+		    DEC(AddressModes.Absolute)
+		    
 		  Case &hD0 // BNE
 		    BNE
 		    
@@ -1135,6 +1181,9 @@ Protected Class CPU
 		    
 		  Case &hD5 // CMP $nn,X
 		    Compare(A, AddressModes.XIndexedZeroPage)
+		    
+		  Case &hD6 // DEC $nn,X
+		    DEC(AddressModes.XIndexedZeroPage)
 		    
 		  Case &hD8 // CLD
 		    DecimalFlag = False
@@ -1145,6 +1194,9 @@ Protected Class CPU
 		    
 		  Case &hDD // CMP $nnnn,X
 		    Compare(A, AddressModes.XIndexedAbsolute)
+		    
+		  Case &hDE // DEC $nnnn,X
+		    DEC(AddressModes.XIndexedAbsolute)
 		    
 		  Case &hE0 // CPX #$nn
 		    Compare(X, AddressModes.Immediate)

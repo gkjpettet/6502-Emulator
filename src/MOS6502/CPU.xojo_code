@@ -909,6 +909,9 @@ Protected Class CPU
 		  Case &h95 // STA $nn,X
 		    STA(AddressModes.XIndexedZeroPage)
 		    
+		  Case &h98 // TYA
+		    TYA
+		    
 		  Case &h99 // STA $nnnn,Y
 		    STA(AddressModes.YIndexedAbsolute)
 		    
@@ -1631,6 +1634,31 @@ Protected Class CPU
 		  Case AddressModes.ZeroPageIndirectYIndexed
 		    TotalCycles = TotalCycles + 6
 		  End Select
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub TYA()
+		  /// TYA - Transfer Index Y To Accumulator.
+		  ///
+		  /// Operation: Y → A
+		  ///
+		  /// Moves the value that is in the index register Y to the accumulator without disturbing the 
+		  /// content of the register Y.
+		  ///
+		  /// Does not affect any other register other than the accumula­tor and does not affect the 
+		  /// carry or overflow flag. 
+		  /// If the result in the accumulator A has bit 7 on, the N flag is set, otherwise it is reset. 
+		  /// If the resultant value in the accumulator A is 0, then the Z flag is set, otherwise it's reset.
+		  
+		  A = Y
+		  
+		  NegativeFlag = (A And &b10000000) <> 0
+		  
+		  ZeroFlag = (A = 0)
+		  
+		  TotalCycles = TotalCycles + 2
 		  
 		End Sub
 	#tag EndMethod

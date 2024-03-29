@@ -487,6 +487,30 @@ Protected Class CPU
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Sub DEX()
+		  /// DEX - Decrement Index Register X By One
+		  ///
+		  /// Operation: X - 1 → X
+		  ///
+		  /// Subtracts one from the current value of the index register X and stores the result in the 
+		  /// index register X.
+		  ///
+		  /// Does not affect the carry or overflow flag.
+		  /// Sets the N flag if it has bit 7 on as a result of the decrement, otherwise it resets the N flag.
+		  /// Sets the Z flag if X is a 0 as a result of the decrement, otherwise it resets the Z flag.
+		  
+		  X = X - 1
+		  
+		  NegativeFlag = (X And &b10000000) <> 0
+		  
+		  ZeroFlag = (X = 0)
+		  
+		  TotalCycles = TotalCycles + 2
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21, Description = 444559202D2044656372656D656E7420496E6465782052656769737465722059204279204F6E652E
 		Private Sub DEY()
 		  /// DEY - Decrement Index Register Y By One.
@@ -943,6 +967,9 @@ Protected Class CPU
 		    
 		  Case &hC8 // INY
 		    INY
+		    
+		  Case &hCA // DEX
+		    DEX
 		    
 		  Case &hD0 // BNE
 		    BNE

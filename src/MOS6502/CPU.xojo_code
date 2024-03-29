@@ -938,6 +938,9 @@ Protected Class CPU
 		    OverflowFlag = False
 		    TotalCycles = TotalCycles + 2
 		    
+		  Case &hBA // TSX
+		    TSX
+		    
 		  Case &hC8 // INY
 		    INY
 		    
@@ -1763,6 +1766,30 @@ Protected Class CPU
 		  NegativeFlag = (Y And &b10000000) <> 0
 		  
 		  ZeroFlag = (Y = 0)
+		  
+		  TotalCycles = TotalCycles + 2
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21, Description = 545358202D205472616E7366657220537461636B20506F696E74657220546F20496E64657820582E
+		Private Sub TSX()
+		  /// TSX - Transfer Stack Pointer To Index X.
+		  ///
+		  /// Operation: S → X
+		  /// 
+		  /// Transfers the value in the stack pointer to the index register X.
+		  ///
+		  /// Does not affect the carry or overflow flags. 
+		  /// It sets N if bit 7 is on in index X as a result of the instruction, otherwise it is reset. 
+		  /// If index X is zero as a result of the TSX, the Z flag is set, other­wise it is reset. 
+		  /// TSX changes the value of index X, making it equal to the content of the stack pointer.
+		  
+		  X = SP
+		  
+		  NegativeFlag = (X And &b10000000) <> 0
+		  
+		  ZeroFlag = (X = 0)
 		  
 		  TotalCycles = TotalCycles + 2
 		  
